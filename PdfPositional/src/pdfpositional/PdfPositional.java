@@ -96,6 +96,7 @@ public class PdfPositional extends PDFTextStripper {
                 }
             }
             
+            
             List allPages = document.getDocumentCatalog().getAllPages();
             if (pdfPositional.hasPageNumber()) { 
                 if (document.getNumberOfPages() < pdfPositional.getPageNumber()) {
