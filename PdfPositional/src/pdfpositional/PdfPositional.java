@@ -5,17 +5,387 @@
  */
 package pdfpositional;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.List;
+
+import java.io.StringWriter;
+
+import pdfpositional.exceptions.*;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.util.TextPosition;
+
 /**
  *
  * @author jonny
  */
-public class PdfPositional {
-
+public class PdfPositional extends PDFTextStripper {
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        try {
+            // check file param
+            if (args.length == 0) {
+                throw new ParameterException("No file parameter specified");
+            }
+            
+            String file = args[args.length - 1];
+            Pattern patternFile = Pattern.compile("(?i)^[\\w,\\s-()/]+\\.pdf$");
+            Matcher matcherFile = patternFile.matcher(file);
+        
+            // check file is valid format
+            if (!matcherFile.find()) {
+                throw new ParameterException("File parameter invalid: " + file);
+            }
+
+            // check if file exists
+            File input = new File(file);
+            if(!input.exists()) {
+                throw new ParameterException("File does not exist: " + file);
+            }
+
+            // ensure it isnt a directory
+            if(input.isDirectory()) {
+                throw new ParameterException("File is a directory: " + file);
+            }
+        
+            PdfPositional pdfPositional = new PdfPositional(input);
+            pdfPositional.setConversion(new Float(1.388888888889));
+
+            pdfPositional.processFileArgument(args[args.length - 1]);
+            Pattern patternArgument = Pattern.compile("^-{2}([^=]+)[=]([\\s\\S]+)$");
+            Matcher matcher;
+            
+            for (int i = 0; i < args.length - 1; i++) {
+                matcher = patternArgument.matcher(args[i]);
+                while (matcher.find()) {
+                    switch (matcher.group(1)) {
+                        case "page":
+                            pdfPositional.setPageNumber(Integer.parseInt(matcher.group(2)));
+                            break;
+                        case "output":
+                            pdfPositional.setOutputFile(matcher.group(2));
+                            break;
+                    }
+                }
+            }
+            
+            PDDocument document = null;
+
+            document = PDDocument.load(pdfPositional.getInputFile());
+        
+            // check for encrypted document
+            if (document.isEncrypted()) {
+                try {
+                    document.decrypt("");
+                } catch (Exception e) {
+                    throw new EncryptedDocumentException();
+                }
+            }
+            
+            List allPages = document.getDocumentCatalog().getAllPages();
+            if (pdfPositional.hasPageNumber()) { 
+                if (document.getNumberOfPages() < pdfPositional.getPageNumber()) {
+                    throw new ParameterException("illegal page number");
+                }
+                PDPage page = (PDPage) allPages.get(pdfPositional.getPageNumber() - 1);
+                PDStream contents = page.getContents();
+                if (contents != null) {
+                    pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
+                    pdfPositional.addPageDataToPdfData();
+                }
+            } else {
+                for (int i = 0; i < allPages.size(); i++) {
+                    pdfPositional.setPageNumber(i + 1);
+                    PDPage page = (PDPage) allPages.get(i);
+                    PDStream contents = page.getContents();
+
+                    if (contents != null) {
+                        pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
+                        pdfPositional.addPageDataToPdfData();
+                    }
+                }
+            }
+            
+            pdfPositional.writeJSON();
+            
+            System.exit(0);
+        } catch (ParameterException ex) {
+            //ex.printStackTrace();
+            System.out.println("Parameter Error: " + ex.getMessage());
+            System.exit(1);
+        } catch (EncryptedDocumentException ex) {
+            System.out.println("Encrypted Document Error");
+            System.exit(1);
+            //ex.printStackTrace();
+        } catch (Exception ex) {
+            System.out.println("General Error");
+            System.exit(1);
+            //ex.printStackTrace();
+        }
+        
     }
     
+    public PdfWord currentWord;
+    public PdfLocation lastLocation;
+    
+    @Override
+    protected void processTextPosition(TextPosition text) {
+        String tChar = text.getCharacter();
+        String REGEX = "[,.\\[\\](:;!?)/\\u00A0]";
+        char c = tChar.charAt(0);
+        boolean lineMatch = matchCharLine(text.getYDirAdj() * this.getConversion());
+        
+        lastLocation = new PdfLocation(
+            text.getXDirAdj() * this.getConversion(), 
+            text.getYDirAdj() * this.getConversion(),
+            text.getWidthDirAdj() * this.getConversion(),
+            text.getHeightDir() * this.getConversion()
+        );
+        
+        // if char is not punctuation or whitespace
+        if ((!tChar.matches(REGEX)) && (!Character.isWhitespace(c))) {
+            if ((currentWord != null) && (lineMatch == true)) {
+                currentWord.addCharacter(tChar, lastLocation);
+            } else if (currentWord == null) {
+                currentWord = new PdfWord(tChar, lastLocation);
+            }
+        } else {
+            if (currentWord != null){
+                this.getPageData().add(currentWord.toJson());
+            } 
+            
+            currentWord = null;
+        }
+    }
+    
+    protected boolean matchCharLine(float yPos) {
+        if (lastLocation == null) {
+            return false;
+        }
+        
+        return (compareFloat(yPos, lastLocation.getyPos()));
+    }
+    
+    protected boolean compareFloat(float val1, float val2) {
+        return Math.floor(val1 * 10) == Math.floor(val2 * 10);
+    }
+    
+    
+    private File inputFile;
+
+    /**
+     * Get the value of input File
+     * 
+     * @return File
+     */
+    public File getInputFile() {
+        return inputFile;
+    }
+
+    /**
+     * Set the value of input
+     * 
+     * @param inputFile 
+     */
+    public void setInputFile(File inputFile) {
+        this.inputFile = inputFile;
+    }
+
+    
+    private String outputFile;
+
+    /**
+     * Get the value of outputFile
+     *
+     * @return the value of outputFile
+     */
+    public final String getOutputFile() {
+        return outputFile;
+    }
+
+    /**
+     * Set the value of outputFile
+     *
+     * @param outputFile new value of outputFile
+     */
+    public final void setOutputFile(String outputFile) {
+        this.outputFile = outputFile;
+    }
+    
+    /**
+     * outputFile checker
+     * 
+     * @return boolean
+     */
+    public final boolean hasOutputFile() {
+        return (this.getOutputFile() != null && this.getOutputFile().length() > 0);
+    }
+    
+    private int pageNumber;
+
+    /**
+     * Get the value of pageNumber
+     *
+     * @return the value of pageNumber
+     */
+    public final int getPageNumber() {
+        return pageNumber;
+    }
+
+    /**
+     * Set the value of pageNumber
+     *
+     * @param pageNumber new value of pageNumber
+     */
+    public final void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+    
+    /**
+     * Check to ensure that we have the page number
+     * 
+     * @return boolean
+     */
+    public final boolean hasPageNumber() {
+        return this.getPageNumber() > 0;
+    }
+    
+    private Float conversion;
+
+    /**
+     * Get the value of conversion
+     *
+     * @return the value of conversion
+     */
+    public Float getConversion() {
+        return conversion;
+    }
+
+    /**
+     * Set the value of conversion
+     *
+     * @param conversion new value of conversion
+     */
+    public void setConversion(Float conversion) {
+        this.conversion = conversion;
+    }
+
+    private JSONArray pageData;
+
+    /**
+     * Get the value of pageData
+     *
+     * @return the value of pageData
+     */
+    public JSONArray getPageData() {
+        return pageData;
+    }
+
+    /**
+     * Set the value of pageData
+     *
+     * @param pageData new value of pageData
+     */
+    public void setPageData(JSONArray pageData) {
+        this.pageData = pageData;
+    }
+
+    private JSONObject pdfData;
+
+    /**
+     * Get the value of pdfData
+     *
+     * @return the value of pdfData
+     */
+    public JSONObject getPdfData() {
+        return pdfData;
+    }
+
+    /**
+     * Set the value of pdfData
+     *
+     * @param pdfData new value of pdfData
+     */
+    public void setPdfData(JSONObject pdfData) {
+        this.pdfData = pdfData;
+    }
+
+    /**
+     * add page data to PDFData structure
+     * @param pageId 
+     */
+    public void addPageDataToPdfData() {
+        this.getPdfData().put(this.getPageNumber(), this.getPageData());
+        this.setPageData(new JSONArray());
+    }
+    
+    /**
+     * constructor
+     * 
+     * @param file
+     * @throws IOException 
+     */
+    public PdfPositional(File file) throws IOException {
+        // check file param
+        this.setInputFile(file);
+        
+        // set default conversion value
+        this.setConversion(new Float(1));
+        
+        // initialize page and pdf data
+        this.setPageData(new JSONArray());
+        this.setPdfData(new JSONObject());
+        
+        super.setSortByPosition(true);
+    }
+    
+    public void writeJSON () throws IOException {
+        StringWriter out = new StringWriter();
+        this.getPdfData().writeJSONString(out);
+        if (this.hasOutputFile()) {
+            File file = new File(this.getOutputFile());
+            String content = out.toString();
+            try (FileOutputStream fop = new FileOutputStream(file)) {
+                // if file doesn't exists, then create it
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+
+                // get the content in bytes
+                byte[] contentInBytes = content.getBytes();
+
+                fop.write(contentInBytes);
+                fop.flush();
+                fop.close();
+
+            } catch (IOException e) {
+                    e.printStackTrace();
+            }            
+        } else {
+            System.out.print(out.toString());
+        }
+    }
+    
+    /**
+     * process file argument
+     * 
+     * @param String file
+     * @return void
+     * @throws ParameterException 
+     */
+    private void processFileArgument (String file) throws ParameterException {
+
+    }
 }
