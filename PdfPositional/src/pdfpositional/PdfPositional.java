@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.List;
 
 import java.io.StringWriter;
+import org.apache.pdfbox.exceptions.CryptographyException;
 
 import pdfpositional.exceptions.*;
 
@@ -76,20 +77,21 @@ public class PdfPositional extends PDFTextStripper {
                             break;
                         case "output":
                             pdfPositional.setOutputFile(matcher.group(2));
+                            //System.exit(0);
                             break;
                     }
                 }
             }
             
-            PDDocument document = null;
-
+            PDDocument document;
             document = PDDocument.load(pdfPositional.getInputFile());
         
             // check for encrypted document
             if (document.isEncrypted()) {
                 try {
                     document.decrypt("");
-                } catch (Exception e) {
+                } catch (CryptographyException | IOException e) {
+                    document.close();
                     throw new EncryptedDocumentException();
                 }
             }
@@ -119,6 +121,7 @@ public class PdfPositional extends PDFTextStripper {
             }
             
             pdfPositional.writeJSON();
+            document.close();
             
             System.exit(0);
         } catch (ParameterException ex) {
@@ -129,7 +132,7 @@ public class PdfPositional extends PDFTextStripper {
             System.out.println("Encrypted Document Error");
             System.exit(1);
             //ex.printStackTrace();
-        } catch (Exception ex) {
+        } catch (IOException | NumberFormatException ex) {
             System.out.println("General Error");
             System.exit(1);
             //ex.printStackTrace();
@@ -324,7 +327,6 @@ public class PdfPositional extends PDFTextStripper {
 
     /**
      * add page data to PDFData structure
-     * @param pageId 
      */
     public void addPageDataToPdfData() {
         this.getPdfData().put(this.getPageNumber(), this.getPageData());
@@ -342,11 +344,11 @@ public class PdfPositional extends PDFTextStripper {
         this.setInputFile(file);
         
         // set default conversion value
-        this.setConversion(new Float(1));
+        this.conversion = new Float(1);
         
         // initialize page and pdf data
-        this.setPageData(new JSONArray());
-        this.setPdfData(new JSONObject());
+        this.pageData = new JSONArray();
+        this.pdfData = new JSONObject();
         
         super.setSortByPosition(true);
     }
@@ -371,7 +373,7 @@ public class PdfPositional extends PDFTextStripper {
                 fop.close();
 
             } catch (IOException e) {
-                    e.printStackTrace();
+                throw e;
             }            
         } else {
             System.out.print(out.toString());
