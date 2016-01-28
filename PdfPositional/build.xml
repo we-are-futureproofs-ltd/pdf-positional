@@ -10,6 +10,7 @@
 <project name="PdfPositional" default="default" basedir=".">
     <description>Builds, tests, and runs the project PdfPositional.</description>
     <import file="nbproject/build-impl.xml"/>
+    <import file="release/combine.xml"/>
     <!--
 
     There exist several targets which are by default empty and which can be 

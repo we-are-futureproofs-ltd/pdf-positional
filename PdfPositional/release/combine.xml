@@ -1,0 +1,6 @@
+<project name="MyProject" basedir=".">
+	<zip destfile="release/PdfPositional.jar">
+		 <zipgroupfileset dir="dist/lib" includes="*.jar"/>
+		 <zipgroupfileset dir="dist/." includes="PdfPositional.jar"/>
+	</zip>
+</project>
