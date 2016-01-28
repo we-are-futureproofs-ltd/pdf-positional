@@ -80,9 +80,9 @@ public class PdfWord {
 
 
     public PdfWord(String startChar, PdfLocation location) {
-        this.setWord(startChar);
-        this.setLocationStart(location);
-        this.setLocationEnd(location);
+        this.word = startChar;
+        this.locationStart = location;
+        this.locationEnd = location;
     }
 
     @Override

@@ -93,10 +93,10 @@ public class PdfLocation {
 
     
     public PdfLocation(float xPos, float yPos, float width, float height) {
-        this.setxPos(xPos);
-        this.setyPos(yPos);
-        this.setWidth(width);
-        this.setHeight(height);
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.width = width;
+        this.height = height;
     }
     
 }

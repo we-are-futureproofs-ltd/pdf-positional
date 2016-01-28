@@ -5,9 +5,11 @@
  */
 package pdfpositional;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.List;
@@ -77,12 +79,11 @@ public class PdfPositional extends PDFTextStripper {
                             break;
                         case "output":
                             pdfPositional.setOutputFile(matcher.group(2));
-                            //System.exit(0);
                             break;
                     }
                 }
             }
-            
+
             PDDocument document;
             document = PDDocument.load(pdfPositional.getInputFile());
         
@@ -96,7 +97,6 @@ public class PdfPositional extends PDFTextStripper {
                 }
             }
             
-            
             List allPages = document.getDocumentCatalog().getAllPages();
             if (pdfPositional.hasPageNumber()) { 
                 if (document.getNumberOfPages() < pdfPositional.getPageNumber()) {
@@ -107,6 +107,7 @@ public class PdfPositional extends PDFTextStripper {
                 if (contents != null) {
                     pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
                     pdfPositional.addPageDataToPdfData();
+                    pdfPositional.writeJSONToOutputStream();
                 }
             } else {
                 for (int i = 0; i < allPages.size(); i++) {
@@ -117,26 +118,26 @@ public class PdfPositional extends PDFTextStripper {
                     if (contents != null) {
                         pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
                         pdfPositional.addPageDataToPdfData();
+                        pdfPositional.writeJSONToOutputStream();
                     }
+                    
+                    page.clear();
                 }
             }
             
-            pdfPositional.writeJSON();
+            pdfPositional.destroyOutputStream();
             document.close();
             
             System.exit(0);
         } catch (ParameterException ex) {
-            //ex.printStackTrace();
             System.out.println("Parameter Error: " + ex.getMessage());
             System.exit(1);
         } catch (EncryptedDocumentException ex) {
             System.out.println("Encrypted Document Error");
             System.exit(1);
-            //ex.printStackTrace();
         } catch (IOException | NumberFormatException ex) {
             System.out.println("General Error");
             System.exit(1);
-            //ex.printStackTrace();
         }
         
     }
@@ -221,11 +222,13 @@ public class PdfPositional extends PDFTextStripper {
 
     /**
      * Set the value of outputFile
-     *
-     * @param outputFile new value of outputFile
+     * 
+     * @param outputFile
+     * @throws IOException 
      */
-    public final void setOutputFile(String outputFile) {
+    public final void setOutputFile(String outputFile) throws IOException {
         this.outputFile = outputFile;
+        this.prepareOutputStream();
     }
     
     /**
@@ -341,8 +344,8 @@ public class PdfPositional extends PDFTextStripper {
      * @throws IOException 
      */
     public PdfPositional(File file) throws IOException {
-        // check file param
-        this.setInputFile(file);
+        // set file param
+        this.inputFile = file;
         
         // set default conversion value
         this.conversion = new Float(1);
@@ -354,31 +357,49 @@ public class PdfPositional extends PDFTextStripper {
         super.setSortByPosition(true);
     }
     
-    public void writeJSON () throws IOException {
+    PrintWriter outputStream;
+    
+    /**
+     * setup output stream
+     * @throws IOException 
+     */
+    public void prepareOutputStream () throws IOException {
+        File saveFile;
+        saveFile = new File(this.getOutputFile());
+        if (saveFile.exists()) {
+            saveFile.delete();
+        }
+
+        outputStream = new PrintWriter(new BufferedWriter(new FileWriter(this.getOutputFile(), true)));
+    }
+    
+    /**
+     * ensure that output stream is closed
+     */
+    public void destroyOutputStream () {
+        if (outputStream != null) {
+            outputStream.close();
+            outputStream = null;
+        }
+    }
+    
+    /**
+     * write JSON data to output stream
+     * @throws IOException 
+     */
+    public void writeJSONToOutputStream () throws IOException {
         StringWriter out = new StringWriter();
         this.getPdfData().writeJSONString(out);
-        if (this.hasOutputFile()) {
-            File file = new File(this.getOutputFile());
-            String content = out.toString();
-            try (FileOutputStream fop = new FileOutputStream(file)) {
-                // if file doesn't exists, then create it
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-
-                // get the content in bytes
-                byte[] contentInBytes = content.getBytes();
-
-                fop.write(contentInBytes);
-                fop.flush();
-                fop.close();
-
-            } catch (IOException e) {
-                throw e;
-            }            
+        if (!this.hasOutputFile() || (this.outputStream == null)) {
+            System.out.println(out.toString());
         } else {
-            System.out.print(out.toString());
+            this.outputStream.println(out.toString());
         }
+        
+        // initialize page and pdf data
+        this.pageData = new JSONArray();
+        this.pdfData = new JSONObject();
+
     }
     
     /**
