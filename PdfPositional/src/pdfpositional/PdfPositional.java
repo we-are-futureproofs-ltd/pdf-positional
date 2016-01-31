@@ -177,7 +177,6 @@ public class PdfPositional extends PDFTextStripper {
     protected void storeWord () {
         if (currentWord != null){
             this.getPageData().add(currentWord.toJson());
-            System.out.println(currentWord);
         } 
         currentWord = null;
     }
