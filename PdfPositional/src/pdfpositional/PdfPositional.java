@@ -158,12 +158,15 @@ public class PdfPositional extends PDFTextStripper {
             text.getWidthDirAdj() * this.getConversion(),
             text.getHeightDir() * this.getConversion()
         );
-        
+
         // if char is not punctuation or whitespace
         if ((!tChar.matches(REGEX)) && (!Character.isWhitespace(c))) {
             if ((currentWord != null) && (lineMatch == true)) {
                 currentWord.addCharacter(tChar, lastLocation);
             } else if (currentWord == null) {
+                currentWord = new PdfWord(tChar, lastLocation);
+            } else if (lineMatch == false) {
+                this.getPageData().add(currentWord.toJson());
                 currentWord = new PdfWord(tChar, lastLocation);
             }
         } else {
