@@ -148,7 +148,7 @@ public class PdfPositional extends PDFTextStripper {
     @Override
     protected void processTextPosition(TextPosition text) {
         String tChar = text.getCharacter();
-        String REGEX = "[,.\\[\\](:;!?)/\\u00A0]";
+        String REGEX = "[^a-zA-Z0-9]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
         char c = tChar.charAt(0);
         boolean lineMatch = matchCharLine(text.getYDirAdj() * this.getConversion());
         
@@ -166,19 +166,23 @@ public class PdfPositional extends PDFTextStripper {
             } else if (currentWord == null) {
                 currentWord = new PdfWord(tChar, lastLocation);
             } else if (lineMatch == false) {
-                this.getPageData().add(currentWord.toJson());
+                this.storeWord();
                 currentWord = new PdfWord(tChar, lastLocation);
             }
         } else {
-            if (currentWord != null){
-                this.getPageData().add(currentWord.toJson());
-            } 
-            
-            currentWord = null;
+            this.storeWord();
         }
     }
     
-    protected boolean matchCharLine(float yPos) {
+    protected void storeWord () {
+        if (currentWord != null){
+            this.getPageData().add(currentWord.toJson());
+            System.out.println(currentWord);
+        } 
+        currentWord = null;
+    }
+    
+    protected boolean matchCharLine (float yPos) {
         if (lastLocation == null) {
             return false;
         }
