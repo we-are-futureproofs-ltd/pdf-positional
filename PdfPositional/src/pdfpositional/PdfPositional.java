@@ -136,7 +136,7 @@ public class PdfPositional extends PDFTextStripper {
             System.out.println("Encrypted Document Error");
             System.exit(1);
         } catch (IOException | NumberFormatException ex) {
-            System.out.println("General Error");
+            System.out.println("General Error: " + ex.getMessage());
             System.exit(1);
         }
         
