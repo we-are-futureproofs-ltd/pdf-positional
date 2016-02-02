@@ -167,28 +167,30 @@ public class PdfPositional extends PDFTextStripper {
     
     @Override
     protected void processTextPosition(TextPosition text) {
-        String tChar = text.getCharacter();
-        String REGEX = "[^a-zA-Z0-9]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
-        char c = tChar.charAt(0);
         boolean lineMatch = (lastLocation == null) ? false : lastLocation.isSameWord(text);
 
         lastLocation = new PdfCharacter(text, this.getConversion());
 
         // if char is not punctuation or whitespace
-        if ((!tChar.matches(REGEX)) && (!Character.isWhitespace(c))) {
+        if (!lastLocation.isWhiteSpace()) {
+            String letter = lastLocation.getNormalizedCharacter();
+
             if ((currentWord != null) && (lineMatch == true)) {
-                currentWord.addCharacter(tChar, lastLocation);
+                currentWord.addCharacter(letter, lastLocation);
             } else if (currentWord == null) {
-                currentWord = new PdfWord(tChar, lastLocation);
+                currentWord = new PdfWord(letter, lastLocation);
             } else if (lineMatch == false) {
                 this.storeWord();
-                currentWord = new PdfWord(tChar, lastLocation);
+                currentWord = new PdfWord(letter, lastLocation);
             }
         } else {
             this.storeWord();
         }
     }
-    
+
+    /**
+     * store word
+     */
     protected void storeWord () {
         if (currentWord != null){
             this.getPageData().add(currentWord.toJson());

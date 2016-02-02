@@ -91,19 +91,15 @@ public class PdfCharacter {
     
     /**
      * check to determine if letter is part of current word
-     * @param wordPosition
-     * @return 
+     * @param charPosition
+     * @return boolean
      */
     public boolean isSameWord(TextPosition charPosition) {
         if (!isSameLine(charPosition)) {
             return false;
         }
         
-        if (!isWithinPermittedSpacing(charPosition)) {
-            return false;
-        }
-
-        return true;
+        return isWithinPermittedSpacing(charPosition);
     }
     
     /**
@@ -136,10 +132,41 @@ public class PdfCharacter {
      * compare 2 floats to within 1 SF
      * @param val1
      * @param val2
-     * @return 
+     * @return boolean
      */
     protected boolean compareFloat(float val1, float val2) {
         return Math.floor(val1 * 10) == Math.floor(val2 * 10);
+    }
+    
+    private static final String REGEX_WHITESPACE = "[^a-zA-Z0-9\\uFB00\\uFB01\\uFB02\\uFB03\\uFB04\\uFB05\\uFB06]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
+    
+    /**
+     * is character a white space
+     * @return boolean
+     */
+    public boolean isWhiteSpace() {
+        String chr = this.position.getCharacter();
+        if (this.position.getCharacter().matches(REGEX_WHITESPACE)) {
+            return true;
+        }
+        
+        return (Character.isWhitespace(chr.charAt(0)));
+    }
+    
+    /**
+     * get normalized Character
+     * @return String
+     */
+    public String getNormalizedCharacter() {
+        switch((int)this.position.getCharacter().charAt(0)) {
+            case 64256: return "ff";
+            case 64257: return "fi";
+            case 64258: return "fl";
+            case 64259: return "ffi";
+            case 64260: return "ffl";
+            case 64261: return "st";
+            default: return this.position.getCharacter();
+        }
     }
 
 
@@ -151,6 +178,7 @@ public class PdfCharacter {
     public PdfCharacter(TextPosition position, Float conversion) {
         this.conversion = conversion;
         this.position = position;
+        //System.out.println(position.getCharacter() + ": " + position.getX() + ", " + position.getXDirAdj());
     }
     
 }

@@ -223,5 +223,33 @@ public class PdfCharacterTest {
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
+
+    /**
+     * Test of isWhiteSpace method, of class PdfCharacter.
+     */
+    @Test
+    public void testIsWhiteSpace() {
+        System.out.println("isWhiteSpace");
+        PdfCharacter instance = null;
+        boolean expResult = false;
+        boolean result = instance.isWhiteSpace();
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of getNormalizedCharacter method, of class PdfCharacter.
+     */
+    @Test
+    public void testGetNormalizedCharacter() {
+        System.out.println("getNormalizedCharacter");
+        PdfCharacter instance = null;
+        String expResult = "";
+        String result = instance.getNormalizedCharacter();
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
     
 }
