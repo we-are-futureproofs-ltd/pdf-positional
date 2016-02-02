@@ -13,14 +13,14 @@ import org.json.simple.JSONObject;
  */
 public class PdfWord {
     
-    private PdfLocation locationStart;
+    private PdfCharacter locationStart;
 
     /**
      * Get the value of locationStart
      *
      * @return the value of locationStart
      */
-    public PdfLocation getLocationStart() {
+    public PdfCharacter getLocationStart() {
         return locationStart;
     }
 
@@ -29,18 +29,18 @@ public class PdfWord {
      *
      * @param locationStart new value of locationStart
      */
-    public void setLocationStart(PdfLocation locationStart) {
+    public void setLocationStart(PdfCharacter locationStart) {
         this.locationStart = locationStart;
     }
 
-        private PdfLocation locationEnd;
+        private PdfCharacter locationEnd;
 
     /**
      * Get the value of locationEnd
      *
      * @return the value of locationEnd
      */
-    public PdfLocation getLocationEnd() {
+    public PdfCharacter getLocationEnd() {
         return locationEnd;
     }
 
@@ -49,7 +49,7 @@ public class PdfWord {
      *
      * @param locationEnd new value of locationEnd
      */
-    public void setLocationEnd(PdfLocation locationEnd) {
+    public void setLocationEnd(PdfCharacter locationEnd) {
         this.locationEnd = locationEnd;
     }
 
@@ -73,13 +73,13 @@ public class PdfWord {
         this.word = word;
     }
     
-    public void addCharacter(String character, PdfLocation location) {
+    public void addCharacter(String character, PdfCharacter location) {
         this.setWord(this.getWord() + character);
         this.setLocationEnd(location);
     }
 
 
-    public PdfWord(String startChar, PdfLocation location) {
+    public PdfWord(String startChar, PdfCharacter location) {
         this.word = startChar;
         this.locationStart = location;
         this.locationEnd = location;

@@ -45,8 +45,8 @@ public class PdfWordTest {
     public void testGetLocationStart() {
         System.out.println("getLocationStart");
         PdfWord instance = null;
-        PdfLocation expResult = null;
-        PdfLocation result = instance.getLocationStart();
+        PdfCharacter expResult = null;
+        PdfCharacter result = instance.getLocationStart();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -58,7 +58,7 @@ public class PdfWordTest {
     @Test
     public void testSetLocationStart() {
         System.out.println("setLocationStart");
-        PdfLocation locationStart = null;
+        PdfCharacter locationStart = null;
         PdfWord instance = null;
         instance.setLocationStart(locationStart);
         // TODO review the generated test code and remove the default call to fail.
@@ -72,8 +72,8 @@ public class PdfWordTest {
     public void testGetLocationEnd() {
         System.out.println("getLocationEnd");
         PdfWord instance = null;
-        PdfLocation expResult = null;
-        PdfLocation result = instance.getLocationEnd();
+        PdfCharacter expResult = null;
+        PdfCharacter result = instance.getLocationEnd();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -85,7 +85,7 @@ public class PdfWordTest {
     @Test
     public void testSetLocationEnd() {
         System.out.println("setLocationEnd");
-        PdfLocation locationEnd = null;
+        PdfCharacter locationEnd = null;
         PdfWord instance = null;
         instance.setLocationEnd(locationEnd);
         // TODO review the generated test code and remove the default call to fail.
@@ -126,7 +126,7 @@ public class PdfWordTest {
     public void testAddCharacter() {
         System.out.println("addCharacter");
         String character = "";
-        PdfLocation location = null;
+        PdfCharacter location = null;
         PdfWord instance = null;
         instance.addCharacter(character, location);
         // TODO review the generated test code and remove the default call to fail.

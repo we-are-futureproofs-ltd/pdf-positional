@@ -79,37 +79,6 @@ public class PdfPositionalTest {
     }
 
     /**
-     * Test of matchCharLine method, of class PdfPositional.
-     */
-    @Test
-    public void testMatchCharLine() {
-        System.out.println("matchCharLine");
-        float yPos = 0.0F;
-        PdfPositional instance = null;
-        boolean expResult = false;
-        boolean result = instance.matchCharLine(yPos);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of compareFloat method, of class PdfPositional.
-     */
-    @Test
-    public void testCompareFloat() {
-        System.out.println("compareFloat");
-        float val1 = 0.0F;
-        float val2 = 0.0F;
-        PdfPositional instance = null;
-        boolean expResult = false;
-        boolean result = instance.compareFloat(val1, val2);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of getInputFile method, of class PdfPositional.
      */
     @Test
@@ -343,6 +312,33 @@ public class PdfPositionalTest {
         System.out.println("writeJSONToOutputStream");
         PdfPositional instance = null;
         instance.writeJSONToOutputStream();
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of getMode method, of class PdfPositional.
+     */
+    @Test
+    public void testGetMode() {
+        System.out.println("getMode");
+        PdfPositional instance = null;
+        String expResult = "";
+        String result = instance.getMode();
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of setMode method, of class PdfPositional.
+     */
+    @Test
+    public void testSetMode() {
+        System.out.println("setMode");
+        String mode = "";
+        PdfPositional instance = null;
+        instance.setMode(mode);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }

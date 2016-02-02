@@ -27,6 +27,8 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
+import org.apache.pdfbox.io.RandomAccessFile;
+
 
 /**
  *
@@ -80,12 +82,24 @@ public class PdfPositional extends PDFTextStripper {
                         case "output":
                             pdfPositional.setOutputFile(matcher.group(2));
                             break;
+                        case "mode":
+                            pdfPositional.setMode(matcher.group(2).toLowerCase());
+                            break;
                     }
                 }
             }
 
             PDDocument document;
-            document = PDDocument.load(pdfPositional.getInputFile());
+            RandomAccessFile scratchFile = null;
+
+            if (pdfPositional.getMode().equals("scratch")) {
+                File tmp = new File("temp.tmp");
+                tmp.deleteOnExit();
+                scratchFile = new RandomAccessFile(tmp, "rw");
+                document = PDDocument.loadNonSeq(pdfPositional.getInputFile(), scratchFile);
+            } else {
+                document = PDDocument.load(pdfPositional.getInputFile());
+            }
         
             // check for encrypted document
             if (document.isEncrypted()) {
@@ -127,6 +141,9 @@ public class PdfPositional extends PDFTextStripper {
             
             pdfPositional.destroyOutputStream();
             document.close();
+            if (scratchFile != null) {
+                scratchFile.close();
+            }
             
             System.exit(0);
         } catch (ParameterException ex) {
@@ -135,29 +152,27 @@ public class PdfPositional extends PDFTextStripper {
         } catch (EncryptedDocumentException ex) {
             System.out.println("Encrypted Document Error");
             System.exit(1);
-        } catch (IOException | NumberFormatException ex) {
-            System.out.println("General Error: " + ex.getMessage());
+        } catch (IOException ex) {
+            System.out.println("IO Error: " + ex.getMessage());
+            System.exit(1);
+        } catch (NumberFormatException ex) {
+            System.out.println("NumberFormat Error: " + ex.getMessage());
             System.exit(1);
         }
         
     }
     
     public PdfWord currentWord;
-    public PdfLocation lastLocation;
+    public PdfCharacter lastLocation;
     
     @Override
     protected void processTextPosition(TextPosition text) {
         String tChar = text.getCharacter();
         String REGEX = "[^a-zA-Z0-9]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
         char c = tChar.charAt(0);
-        boolean lineMatch = matchCharLine(text.getYDirAdj() * this.getConversion());
-        
-        lastLocation = new PdfLocation(
-            text.getXDirAdj() * this.getConversion(), 
-            text.getYDirAdj() * this.getConversion(),
-            text.getWidthDirAdj() * this.getConversion(),
-            text.getHeightDir() * this.getConversion()
-        );
+        boolean lineMatch = (lastLocation == null) ? false : lastLocation.isSameWord(text);
+
+        lastLocation = new PdfCharacter(text, this.getConversion());
 
         // if char is not punctuation or whitespace
         if ((!tChar.matches(REGEX)) && (!Character.isWhitespace(c))) {
@@ -181,18 +196,26 @@ public class PdfPositional extends PDFTextStripper {
         currentWord = null;
     }
     
-    protected boolean matchCharLine (float yPos) {
-        if (lastLocation == null) {
-            return false;
-        }
-        
-        return (compareFloat(yPos, lastLocation.getyPos()));
+    private String mode = "memory";
+
+    /**
+     * Get the value of mode
+     *
+     * @return the value of mode
+     */
+    public String getMode() {
+        return mode;
     }
-    
-    protected boolean compareFloat(float val1, float val2) {
-        return Math.floor(val1 * 10) == Math.floor(val2 * 10);
+
+    /**
+     * Set the value of mode
+     *
+     * @param mode new value of mode
+     */
+    public void setMode(String mode) {
+        this.mode = mode;
     }
-    
+
     
     private File inputFile;
 
