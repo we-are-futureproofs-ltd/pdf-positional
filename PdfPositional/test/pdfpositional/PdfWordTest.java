@@ -5,6 +5,13 @@
  */
 package pdfpositional;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
+import org.apache.pdfbox.util.Matrix;
+import org.apache.pdfbox.util.TextPosition;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,6 +25,11 @@ import static org.junit.Assert.*;
  * @author jonny
  */
 public class PdfWordTest {
+    TextPosition textPosition;
+    private PdfCharacter char1;
+    private PdfCharacter char2;
+    private PdfCharacter char3;
+    private PdfWord instance;
     
     public PdfWordTest() {
     }
@@ -32,10 +44,30 @@ public class PdfWordTest {
     
     @Before
     public void setUp() {
+        char1 = this.createPdfCharacter("a");
+        char2 = this.createPdfCharacter("b");
+        char3 = this.createPdfCharacter("b");
+        
+        instance = new PdfWord(char1);
     }
     
     @After
     public void tearDown() {
+    }
+    
+    public PdfCharacter createPdfCharacter(String character) {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {1.1f};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        
+        return new PdfCharacter(new TextPosition(page, textPositionSt, textPositionEnd, 
+            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+            fontSizeValue, fontSizeInPt, ws), new Float(1));
     }
 
     /**
@@ -43,13 +75,8 @@ public class PdfWordTest {
      */
     @Test
     public void testGetLocationStart() {
-        System.out.println("getLocationStart");
-        PdfWord instance = null;
-        PdfCharacter expResult = null;
-        PdfCharacter result = instance.getLocationStart();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(instance.getLocationStart(), char1);
+        assertEquals(instance.getWord(), "a");
     }
 
     /**
@@ -57,12 +84,9 @@ public class PdfWordTest {
      */
     @Test
     public void testSetLocationStart() {
-        System.out.println("setLocationStart");
-        PdfCharacter locationStart = null;
-        PdfWord instance = null;
-        instance.setLocationStart(locationStart);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setLocationStart(char1);
+        
+        assertEquals(instance.getLocationStart(), char1);
     }
 
     /**
@@ -70,13 +94,10 @@ public class PdfWordTest {
      */
     @Test
     public void testGetLocationEnd() {
-        System.out.println("getLocationEnd");
-        PdfWord instance = null;
-        PdfCharacter expResult = null;
-        PdfCharacter result = instance.getLocationEnd();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(instance.getLocationEnd(), char1);
+        
+        instance.setLocationEnd(char2);
+        assertEquals(instance.getLocationEnd(), char2);
     }
 
     /**
@@ -84,12 +105,9 @@ public class PdfWordTest {
      */
     @Test
     public void testSetLocationEnd() {
-        System.out.println("setLocationEnd");
-        PdfCharacter locationEnd = null;
-        PdfWord instance = null;
-        instance.setLocationEnd(locationEnd);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setLocationEnd(char2);
+        
+        assertEquals(instance.getLocationEnd(), char2);
     }
 
     /**
@@ -97,13 +115,11 @@ public class PdfWordTest {
      */
     @Test
     public void testGetWord() {
-        System.out.println("getWord");
-        PdfWord instance = null;
-        String expResult = "";
-        String result = instance.getWord();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setWord("test word");
+        assertEquals(instance.getWord(), "test word");
+
+        instance.setWord("");
+        assertEquals(instance.getWord(), "");
     }
 
     /**
@@ -111,12 +127,8 @@ public class PdfWordTest {
      */
     @Test
     public void testSetWord() {
-        System.out.println("setWord");
-        String word = "";
-        PdfWord instance = null;
-        instance.setWord(word);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setWord("test word");
+        assertEquals(instance.getWord(), "test word");
     }
 
     /**
@@ -124,13 +136,10 @@ public class PdfWordTest {
      */
     @Test
     public void testAddCharacter() {
-        System.out.println("addCharacter");
-        String character = "";
-        PdfCharacter location = null;
-        PdfWord instance = null;
-        instance.addCharacter(character, location);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.addCharacter(char2);
+        
+        assertEquals(instance.getLocationEnd(), char2);
+        assertEquals(instance.getWord(), "ab");
     }
 
     /**
@@ -138,13 +147,14 @@ public class PdfWordTest {
      */
     @Test
     public void testToString() {
-        System.out.println("toString");
-        PdfWord instance = null;
-        String expResult = "";
-        String result = instance.toString();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(instance.toString(), "a");
+
+        instance.setWord("test word");
+        assertEquals(instance.toString(), "test word");
+
+        instance.setWord("");
+        assertEquals(instance.toString(), "");
+
     }
 
     /**
@@ -152,13 +162,26 @@ public class PdfWordTest {
      */
     @Test
     public void testToJson() {
-        System.out.println("toJson");
-        PdfWord instance = null;
-        JSONObject expResult = null;
-        JSONObject result = instance.toJson();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(instance.toJson() instanceof JSONObject);
+        String expectedJson = "{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"a\",\"height\":12.0}";
+        StringWriter out = new StringWriter();
+        try {
+            instance.toJson().writeJSONString(out);
+            assertEquals(out.toString(), expectedJson);
+        } catch (IOException ex) {
+            fail("JSON data mismatch");
+        }
+
+    }
+    
+    /**
+     * Test of toJson method, of class PdfWord.
+     */
+    @Test
+    public void testConstructor() {
+        assertEquals(instance.getWord(), "a");
+        assertEquals(instance.getLocationStart(), char1);
+        assertEquals(instance.getLocationEnd(), char1);
     }
     
 }

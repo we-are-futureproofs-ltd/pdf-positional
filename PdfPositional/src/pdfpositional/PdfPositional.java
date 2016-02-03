@@ -173,15 +173,13 @@ public class PdfPositional extends PDFTextStripper {
 
         // if char is not punctuation or whitespace
         if (!lastLocation.isWhiteSpace()) {
-            String letter = lastLocation.getNormalizedCharacter();
-
             if ((currentWord != null) && (lineMatch == true)) {
-                currentWord.addCharacter(letter, lastLocation);
+                currentWord.addCharacter(lastLocation);
             } else if (currentWord == null) {
-                currentWord = new PdfWord(letter, lastLocation);
+                currentWord = new PdfWord(lastLocation);
             } else if (lineMatch == false) {
                 this.storeWord();
-                currentWord = new PdfWord(letter, lastLocation);
+                currentWord = new PdfWord(lastLocation);
             }
         } else {
             this.storeWord();
@@ -364,8 +362,10 @@ public class PdfPositional extends PDFTextStripper {
      * add page data to PDFData structure
      */
     public void addPageDataToPdfData() {
-        this.getPdfData().put(this.getPageNumber(), this.getPageData());
-        this.setPageData(new JSONArray());
+        if (this.hasPageNumber()) {
+            this.getPdfData().put(this.getPageNumber(), this.getPageData());
+            this.setPageData(new JSONArray());
+        }
     }
     
     /**
@@ -430,7 +430,6 @@ public class PdfPositional extends PDFTextStripper {
         // initialize page and pdf data
         this.pageData = new JSONArray();
         this.pdfData = new JSONObject();
-
     }
     
     /**

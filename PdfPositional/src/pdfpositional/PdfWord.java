@@ -73,14 +73,14 @@ public class PdfWord {
         this.word = word;
     }
     
-    public void addCharacter(String character, PdfCharacter location) {
-        this.setWord(this.getWord() + character);
+    public void addCharacter(PdfCharacter location) {
+        this.setWord(this.getWord() + location.getNormalizedCharacter());
         this.setLocationEnd(location);
     }
 
 
-    public PdfWord(String startChar, PdfCharacter location) {
-        this.word = startChar;
+    public PdfWord(PdfCharacter location) {
+        this.word = location.getNormalizedCharacter();
         this.locationStart = location;
         this.locationEnd = location;
     }

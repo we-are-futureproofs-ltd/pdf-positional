@@ -5,7 +5,13 @@
  */
 package pdfpositional;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -15,12 +21,21 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.Assertion;
+import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 /**
  *
  * @author jonny
  */
 public class PdfPositionalTest {
+    @Rule
+    public final ExpectedSystemExit exit = ExpectedSystemExit.none();    
+
+    private PdfPositional instance;
+    private File inputFile;
+    private PdfWord word;
+    private String outputFile;
     
     public PdfPositionalTest() {
     }
@@ -34,36 +49,110 @@ public class PdfPositionalTest {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
+        inputFile = new File("file");
+        word = createPdfWord("a");
+        instance = new PdfPositional(inputFile);
+        outputFile = "output.file";
     }
     
     @After
     public void tearDown() {
+        if (instance.hasOutputFile()) {
+            File f = new File(instance.getOutputFile());
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+    }
+    
+    public PdfWord createPdfWord(String character) {
+        return new PdfWord(new PdfCharacter(createTextPosition(character), new Float(1)));
+    }
+    
+    public TextPosition createTextPosition(String character) {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {1.1f};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        
+        return new TextPosition(page, textPositionSt, textPositionEnd, 
+            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+            fontSizeValue, fontSizeInPt, ws);
+    }
+    
+    
+    @Test
+    public void testContructor() {
+        assertEquals(inputFile, instance.getInputFile());
+        assertEquals(1, instance.getConversion(), 0.0);
+        assertEquals(new JSONArray(), instance.getPageData());
+        assertEquals(new JSONObject(), instance.getPdfData());
     }
 
     /**
      * Test of main method, of class PdfPositional.
      */
     @Test
-    public void testMain() {
-        System.out.println("main");
-        String[] args = null;
-        PdfPositional.main(args);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testMainWithNoPDF() {
+        exit.expectSystemExitWithStatus(1);
+        PdfPositional.main(new String[] {});
+        
     }
+
+    @Test
+    public void testMainWithInvalidPDF() {
+        exit.expectSystemExitWithStatus(1);
+        PdfPositional.main(new String[] {"abc.pdf"});
+    }
+
+    @Test
+    public void testMainWithInvalidReg() {
+        exit.expectSystemExitWithStatus(1);
+        PdfPositional.main(new String[] {"abc"});
+    }
+
+    @Test
+    public void testMainWithInvalidExt() {
+        exit.expectSystemExitWithStatus(1);
+        PdfPositional.main(new String[] {"/Users/jonny/Development/futureproofs-pdf-positional/PdfPositional/pdf/"});
+    }
+
+
+//    @Test
+//    public void testMainWithEmptyArgs() {
+//        PdfPositional.main(new String[] {"param", "b"});
+//    }
 
     /**
      * Test of processTextPosition method, of class PdfPositional.
      */
     @Test
     public void testProcessTextPosition() {
-        System.out.println("processTextPosition");
-        TextPosition text = null;
-        PdfPositional instance = null;
-        instance.processTextPosition(text);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // test processing first char
+        instance.processTextPosition(createTextPosition("a"));
+        
+        assertNotNull(instance.lastLocation);
+        assertNotNull(instance.currentWord);
+        assertEquals("{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"a\",\"height\":12.0}", instance.currentWord.toJson().toJSONString());
+
+        // test multi char word acceptance
+        instance.processTextPosition(createTextPosition("b"));
+        assertNotNull(instance.lastLocation);
+        assertNotNull(instance.currentWord);
+        assertEquals("{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"ab\",\"height\":12.0}", instance.currentWord.toJson().toJSONString());
+        
+        
+        // test whitespace char
+        TextPosition text2 = createTextPosition(" ");
+        instance.processTextPosition(text2);
+        assertNotNull(instance.lastLocation);
+        assertNull(instance.currentWord);
+        assertEquals("[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"ab\",\"height\":12.0}]", instance.getPageData().toJSONString());
     }
 
     /**
@@ -71,11 +160,15 @@ public class PdfPositionalTest {
      */
     @Test
     public void testStoreWord() {
-        System.out.println("storeWord");
-        PdfPositional instance = null;
         instance.storeWord();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNull(instance.currentWord);
+        
+        instance.currentWord  = word;
+        instance.storeWord();
+        JSONArray expected = new JSONArray();
+        expected.add(word.toJson());
+        assertNull(instance.currentWord);
+        assertEquals(expected, instance.getPageData());
     }
 
     /**
@@ -83,13 +176,7 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetInputFile() {
-        System.out.println("getInputFile");
-        PdfPositional instance = null;
-        File expResult = null;
-        File result = instance.getInputFile();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(inputFile, instance.getInputFile());
     }
 
     /**
@@ -97,26 +184,18 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetInputFile() {
-        System.out.println("setInputFile");
-        File inputFile = null;
-        PdfPositional instance = null;
-        instance.setInputFile(inputFile);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        File inputFile2 = new File("file2");
+        instance.setInputFile(inputFile2);
+        assertEquals(inputFile2, instance.getInputFile());
     }
 
     /**
      * Test of getOutputFile method, of class PdfPositional.
      */
     @Test
-    public void testGetOutputFile() {
-        System.out.println("getOutputFile");
-        PdfPositional instance = null;
-        String expResult = "";
-        String result = instance.getOutputFile();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testGetOutputFile() throws IOException {
+        instance.setOutputFile(outputFile);
+        assertEquals(outputFile, instance.getOutputFile());
     }
 
     /**
@@ -124,26 +203,19 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetOutputFile() throws Exception {
-        System.out.println("setOutputFile");
-        String outputFile = "";
-        PdfPositional instance = null;
         instance.setOutputFile(outputFile);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(outputFile, instance.getOutputFile());
+        assertNotNull(instance.outputStream);
     }
 
     /**
      * Test of hasOutputFile method, of class PdfPositional.
      */
     @Test
-    public void testHasOutputFile() {
-        System.out.println("hasOutputFile");
-        PdfPositional instance = null;
-        boolean expResult = false;
-        boolean result = instance.hasOutputFile();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testHasOutputFile() throws IOException {
+        assertFalse(outputFile, instance.hasOutputFile());
+        instance.setOutputFile(outputFile);
+        assertTrue(outputFile, instance.hasOutputFile());
     }
 
     /**
@@ -151,13 +223,9 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetPageNumber() {
-        System.out.println("getPageNumber");
-        PdfPositional instance = null;
-        int expResult = 0;
-        int result = instance.getPageNumber();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(0, instance.getPageNumber());
+        instance.setPageNumber(100);
+        assertEquals(100, instance.getPageNumber());
     }
 
     /**
@@ -165,12 +233,8 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetPageNumber() {
-        System.out.println("setPageNumber");
-        int pageNumber = 0;
-        PdfPositional instance = null;
-        instance.setPageNumber(pageNumber);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setPageNumber(999);
+        assertEquals(999, instance.getPageNumber());
     }
 
     /**
@@ -178,13 +242,9 @@ public class PdfPositionalTest {
      */
     @Test
     public void testHasPageNumber() {
-        System.out.println("hasPageNumber");
-        PdfPositional instance = null;
-        boolean expResult = false;
-        boolean result = instance.hasPageNumber();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertFalse(instance.hasPageNumber());
+        instance.setPageNumber(1);
+        assertTrue(instance.hasPageNumber());
     }
 
     /**
@@ -192,13 +252,9 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetConversion() {
-        System.out.println("getConversion");
-        PdfPositional instance = null;
-        Float expResult = null;
-        Float result = instance.getConversion();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(1, instance.getConversion(), 0);
+        instance.setConversion(12.56f);
+        assertEquals(12.56f, instance.getConversion(), 0);
     }
 
     /**
@@ -206,12 +262,11 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetConversion() {
-        System.out.println("setConversion");
-        Float conversion = null;
-        PdfPositional instance = null;
-        instance.setConversion(conversion);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setConversion(12.56f);
+        assertEquals(12.56f, instance.getConversion(), 0);
+        
+        instance.setConversion(199f);
+        assertEquals(199f, instance.getConversion(), 0);
     }
 
     /**
@@ -219,13 +274,14 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetPageData() {
-        System.out.println("getPageData");
-        PdfPositional instance = null;
-        JSONArray expResult = null;
-        JSONArray result = instance.getPageData();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(new JSONArray(), instance.getPageData());
+        JSONArray json = new JSONArray();
+        JSONObject obj = new JSONObject();
+        obj.put("name", "value");
+        json.add(obj);
+        
+        instance.setPageData(json);
+        assertEquals(json, instance.getPageData());
     }
 
     /**
@@ -233,12 +289,17 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetPageData() {
-        System.out.println("setPageData");
-        JSONArray pageData = null;
-        PdfPositional instance = null;
-        instance.setPageData(pageData);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        JSONArray json = new JSONArray();
+        JSONObject obj = new JSONObject();
+        obj.put("name1", "value");
+        obj.put("name2", 3);
+        json.add(obj);
+        
+        instance.setPageData(json);
+        assertEquals(json, instance.getPageData());
+        
+        instance.setPageData(new JSONArray());
+        assertEquals(new JSONArray(), instance.getPageData());
     }
 
     /**
@@ -246,13 +307,12 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetPdfData() {
-        System.out.println("getPdfData");
-        PdfPositional instance = null;
-        JSONObject expResult = null;
-        JSONObject result = instance.getPdfData();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(new JSONObject(), instance.getPdfData());
+        JSONObject obj = new JSONObject();
+        obj.put("name", "value");
+        
+        instance.setPdfData(obj);
+        assertEquals(obj, instance.getPdfData());
     }
 
     /**
@@ -260,12 +320,14 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetPdfData() {
-        System.out.println("setPdfData");
-        JSONObject pdfData = null;
-        PdfPositional instance = null;
-        instance.setPdfData(pdfData);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        JSONObject obj = new JSONObject();
+        obj.put("name", "value");
+        
+        instance.setPdfData(obj);
+        assertEquals(obj, instance.getPdfData());
+        
+        instance.setPdfData(new JSONObject());
+        assertEquals(new JSONObject(), instance.getPdfData());
     }
 
     /**
@@ -273,11 +335,18 @@ public class PdfPositionalTest {
      */
     @Test
     public void testAddPageDataToPdfData() {
-        System.out.println("addPageDataToPdfData");
-        PdfPositional instance = null;
         instance.addPageDataToPdfData();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(new JSONArray(), instance.getPageData());
+        assertEquals(new JSONObject(), instance.getPdfData());
+        
+        JSONObject expected = new JSONObject();
+        expected.put(1, new JSONArray());
+        
+        instance.setPageNumber(1);
+        instance.setPageData(new JSONArray());
+        instance.addPageDataToPdfData();
+        assertEquals(new JSONArray(), instance.getPageData());
+        assertEquals(expected, instance.getPdfData());
     }
 
     /**
@@ -285,23 +354,23 @@ public class PdfPositionalTest {
      */
     @Test
     public void testPrepareOutputStream() throws Exception {
-        System.out.println("prepareOutputStream");
-        PdfPositional instance = null;
+        instance.setOutputFile(outputFile);
         instance.prepareOutputStream();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNotNull(instance.outputStream);
     }
 
     /**
      * Test of destroyOutputStream method, of class PdfPositional.
      */
     @Test
-    public void testDestroyOutputStream() {
-        System.out.println("destroyOutputStream");
-        PdfPositional instance = null;
+    public void testDestroyOutputStream() throws IOException {
         instance.destroyOutputStream();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNull(instance.outputStream);
+
+        instance.setOutputFile(outputFile);
+        instance.prepareOutputStream();
+        instance.destroyOutputStream();
+        assertNull(instance.outputStream);
     }
 
     /**
@@ -309,11 +378,24 @@ public class PdfPositionalTest {
      */
     @Test
     public void testWriteJSONToOutputStream() throws Exception {
-        System.out.println("writeJSONToOutputStream");
-        PdfPositional instance = null;
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+
+
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+        
+        JSONObject pdfData = new JSONObject();
+        pdfData.put("name", "value");
+        
+        instance.setPdfData(pdfData);
         instance.writeJSONToOutputStream();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(new JSONArray(), instance.getPageData());
+        assertEquals(new JSONObject(), instance.getPdfData());
+        assertEquals(pdfData.toString(), outContent.toString().trim());
+        
+        System.setOut(null);
+        System.setErr(null);
     }
 
     /**
@@ -321,13 +403,10 @@ public class PdfPositionalTest {
      */
     @Test
     public void testGetMode() {
-        System.out.println("getMode");
-        PdfPositional instance = null;
-        String expResult = "";
-        String result = instance.getMode();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals("memory", instance.getMode());
+        
+        instance.setMode("test_mode");
+        assertEquals("test_mode", instance.getMode());
     }
 
     /**
@@ -335,12 +414,8 @@ public class PdfPositionalTest {
      */
     @Test
     public void testSetMode() {
-        System.out.println("setMode");
-        String mode = "";
-        PdfPositional instance = null;
-        instance.setMode(mode);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setMode("123");
+        assertEquals("123", instance.getMode());
     }
     
 }

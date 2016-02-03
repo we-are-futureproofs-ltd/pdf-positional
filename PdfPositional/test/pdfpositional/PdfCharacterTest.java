@@ -5,6 +5,9 @@
  */
 package pdfpositional;
 
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,6 +21,22 @@ import static org.junit.Assert.*;
  * @author jonny
  */
 public class PdfCharacterTest {
+    private PdfCharacter instance;
+    private Float conversion1;
+    private Float conversion2;
+    private TextPosition tPos1;
+    private TextPosition tPos2;
+    private TextPosition tPos3;
+    private TextPosition tPos4;
+    
+    private String[] nonWhitespace = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+         "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+        
+    private String[] whitespace = {"-", "_", "-", ",", ".", " ", "\r", "\n", "\t"};
+
+    private int[] ligaturesCode = {64256, 64257, 64258, 64259, 64260, 64261};
+    private String[] ligaturesConv = {"ff", "fi", "fl", "ffi", "ffl", "st"};
     
     public PdfCharacterTest() {
     }
@@ -32,24 +51,60 @@ public class PdfCharacterTest {
     
     @Before
     public void setUp() {
+        tPos1 = createTextPosition("a", 10, 10, 8, 12);
+        tPos2 = createTextPosition("b", 20, 10, 8, 12);
+        tPos3 = createTextPosition("c", 40, 10, 8, 12);
+        tPos4 = createTextPosition("d", 40, 30, 8, 12);
+        conversion1 = 1.0f;
+        conversion2 = 2.0f;
+        instance = new PdfCharacter(tPos1, conversion1);
     }
     
     @After
     public void tearDown() {
     }
+    
+    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        
+        return new TextPosition(page, textPositionSt, textPositionEnd, 
+            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+            fontSizeValue, fontSizeInPt, ws){
+            @Override
+            public float getXDirAdj() {
+                    return xDirAdj;
+            }
+            @Override
+            public float getYDirAdj() {
+                    return yDirAdj;
+            }
+            @Override
+            public float getWidthDirAdj() {
+                    return width;
+            }
+            @Override
+            public float getHeightDir() {
+                    return height;
+            }
+        };
+    }
+    
 
     /**
      * Test of getxPos method, of class PdfLocation.
      */
     @Test
     public void testGetxPos() {
-        System.out.println("getxPos");
-        PdfCharacter instance = null;
-        float expResult = 0.0F;
-        float result = instance.getxPos();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(10.0F, instance.getxPos(), 0.0);
+        instance.setConversion(conversion2);
+        assertEquals(20.0F, instance.getxPos(), 0.0);
     }
 
     
@@ -58,13 +113,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetyPos() {
-        System.out.println("getyPos");
-        PdfCharacter instance = null;
-        float expResult = 0.0F;
-        float result = instance.getyPos();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(10.0F, instance.getyPos(), 0.0);
+        instance.setConversion(conversion2);
+        assertEquals(20.0F, instance.getyPos(), 0.0);
     }
 
     /**
@@ -72,13 +123,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetWidth() {
-        System.out.println("getWidth");
-        PdfCharacter instance = null;
-        float expResult = 0.0F;
-        float result = instance.getWidth();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(8.0f, instance.getWidth(), 0.0);
+        instance.setConversion(conversion2);
+        assertEquals(16.0f, instance.getWidth(), 0.0);
     }
 
     /**
@@ -86,13 +133,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetHeight() {
-        System.out.println("getHeight");
-        PdfCharacter instance = null;
-        float expResult = 0.0F;
-        float result = instance.getHeight();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(12.0f, instance.getHeight(), 0.0);
+        instance.setConversion(conversion2);
+        assertEquals(24.0f, instance.getHeight(), 0.0);
     }
 
     /**
@@ -100,13 +143,7 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetPosition() {
-        System.out.println("getPosition");
-        PdfCharacter instance = null;
-        TextPosition expResult = null;
-        TextPosition result = instance.getPosition();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(tPos1, instance.getPosition());
     }
 
     /**
@@ -114,12 +151,13 @@ public class PdfCharacterTest {
      */
     @Test
     public void testSetPosition() {
-        System.out.println("setPosition");
-        TextPosition position = null;
-        PdfCharacter instance = null;
-        instance.setPosition(position);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(tPos1, instance.getPosition());
+        
+        instance.setPosition(tPos2);
+        assertEquals(tPos2, instance.getPosition());
+        
+        instance.setPosition(tPos3);
+        assertEquals(tPos3, instance.getPosition());
     }
 
     /**
@@ -127,13 +165,7 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetConversion() {
-        System.out.println("getConversion");
-        PdfCharacter instance = null;
-        Float expResult = null;
-        Float result = instance.getConversion();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(conversion1, instance.getConversion());
     }
 
     /**
@@ -141,12 +173,11 @@ public class PdfCharacterTest {
      */
     @Test
     public void testSetConversion() {
-        System.out.println("setConversion");
-        Float conversion = null;
-        PdfCharacter instance = null;
-        instance.setConversion(conversion);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.setConversion(conversion1);
+        assertEquals(conversion1, instance.getConversion());
+        
+        instance.setConversion(conversion2);
+        assertEquals(conversion2, instance.getConversion());
     }
 
     /**
@@ -154,14 +185,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testIsSameWord() {
-        System.out.println("isSameWord");
-        TextPosition charPosition = null;
-        PdfCharacter instance = null;
-        boolean expResult = false;
-        boolean result = instance.isSameWord(charPosition);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(instance.isSameWord(tPos2));
+        assertFalse(instance.isSameWord(tPos3));
+        assertFalse(instance.isSameWord(tPos4));
     }
 
     /**
@@ -169,14 +195,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testIsSameLine() {
-        System.out.println("isSameLine");
-        TextPosition charPosition = null;
-        PdfCharacter instance = null;
-        boolean expResult = false;
-        boolean result = instance.isSameLine(charPosition);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(instance.isSameLine(tPos2));
+        assertTrue(instance.isSameLine(tPos3));
+        assertFalse(instance.isSameLine(tPos4));
     }
 
     /**
@@ -184,14 +205,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testIsWithinPermittedSpacing() {
-        System.out.println("isWithinPermittedSpacing");
-        TextPosition charPosition = null;
-        PdfCharacter instance = null;
-        boolean expResult = false;
-        boolean result = instance.isWithinPermittedSpacing(charPosition);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(instance.isWithinPermittedSpacing(tPos2));
+        assertFalse(instance.isWithinPermittedSpacing(tPos3));
+        assertFalse(instance.isWithinPermittedSpacing(tPos4));
     }
 
     /**
@@ -199,13 +215,13 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetMaxNextWordXpos() {
-        System.out.println("getMaxNextWordXpos");
-        PdfCharacter instance = null;
-        Float expResult = null;
-        Float result = instance.getMaxNextWordXpos();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(22f, instance.getMaxNextWordXpos(), 0.0);
+        instance.setPosition(tPos2);
+        assertEquals(32f, instance.getMaxNextWordXpos(), 0.0);
+        instance.setPosition(tPos3);
+        assertEquals(52f, instance.getMaxNextWordXpos(), 0.0);
+        instance.setPosition(tPos4);
+        assertEquals(52f, instance.getMaxNextWordXpos(), 0.0);
     }
 
     /**
@@ -213,15 +229,12 @@ public class PdfCharacterTest {
      */
     @Test
     public void testCompareFloat() {
-        System.out.println("compareFloat");
-        float val1 = 0.0F;
-        float val2 = 0.0F;
-        PdfCharacter instance = null;
-        boolean expResult = false;
-        boolean result = instance.compareFloat(val1, val2);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(instance.compareFloat(10f, 10f));
+        assertTrue(instance.compareFloat(-10f, -10f));
+        assertFalse(instance.compareFloat(10f, 11f));
+        
+        assertTrue(instance.compareFloat(10.1f, 10.15f));
+        assertFalse(instance.compareFloat(10.1f, 10.2f));
     }
 
     /**
@@ -229,13 +242,16 @@ public class PdfCharacterTest {
      */
     @Test
     public void testIsWhiteSpace() {
-        System.out.println("isWhiteSpace");
-        PdfCharacter instance = null;
-        boolean expResult = false;
-        boolean result = instance.isWhiteSpace();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        for (int i = 0; i < nonWhitespace.length; i++) {
+            instance.setPosition(this.createTextPosition(nonWhitespace[i], 0, 0, 0, 0));
+            assertFalse(instance.isWhiteSpace());
+        }
+        
+        for (int i = 0; i < whitespace.length; i++) {
+            instance.setPosition(this.createTextPosition(whitespace[i], 0, 0, 0, 0));
+            assertTrue(instance.isWhiteSpace());
+        }
     }
 
     /**
@@ -243,13 +259,15 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetNormalizedCharacter() {
-        System.out.println("getNormalizedCharacter");
-        PdfCharacter instance = null;
-        String expResult = "";
-        String result = instance.getNormalizedCharacter();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        for (int i = 0; i < nonWhitespace.length; i++) {
+            instance.setPosition(this.createTextPosition(nonWhitespace[i], 0, 0, 0, 0));
+            assertEquals(nonWhitespace[i], instance.getNormalizedCharacter());
+        }
+        
+        for (int i = 0; i < ligaturesCode.length; i++) {
+            instance.setPosition(this.createTextPosition(Character.toString((char)ligaturesCode[i]), 0, 0, 0, 0));
+            assertEquals(ligaturesConv[i], instance.getNormalizedCharacter());
+        }
     }
     
 }

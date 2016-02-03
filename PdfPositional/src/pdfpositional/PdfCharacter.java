@@ -178,7 +178,6 @@ public class PdfCharacter {
     public PdfCharacter(TextPosition position, Float conversion) {
         this.conversion = conversion;
         this.position = position;
-        //System.out.println(position.getCharacter() + ": " + position.getX() + ", " + position.getXDirAdj());
     }
     
 }
