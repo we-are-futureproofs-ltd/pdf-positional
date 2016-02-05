@@ -98,7 +98,7 @@ public class PdfCharacterTest {
     
 
     /**
-     * Test of getxPos method, of class PdfLocation.
+     * Test of getxPos method, of class PdfCharacter.
      */
     @Test
     public void testGetxPos() {
@@ -109,7 +109,7 @@ public class PdfCharacterTest {
 
     
     /**
-     * Test of getyPos method, of class PdfLocation.
+     * Test of getyPos method, of class PdfCharacter.
      */
     @Test
     public void testGetyPos() {
@@ -119,7 +119,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of getWidth method, of class PdfLocation.
+     * Test of getWidth method, of class PdfCharacter.
      */
     @Test
     public void testGetWidth() {
@@ -129,7 +129,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of getHeight method, of class PdfLocation.
+     * Test of getHeight method, of class PdfCharacter.
      */
     @Test
     public void testGetHeight() {
@@ -139,7 +139,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of getPosition method, of class PdfLocation.
+     * Test of getPosition method, of class PdfCharacter.
      */
     @Test
     public void testGetPosition() {
@@ -147,7 +147,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of setPosition method, of class PdfLocation.
+     * Test of setPosition method, of class PdfCharacter.
      */
     @Test
     public void testSetPosition() {
@@ -161,7 +161,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of getConversion method, of class PdfLocation.
+     * Test of getConversion method, of class PdfCharacter.
      */
     @Test
     public void testGetConversion() {
@@ -169,7 +169,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of setConversion method, of class PdfLocation.
+     * Test of setConversion method, of class PdfCharacter.
      */
     @Test
     public void testSetConversion() {
@@ -181,7 +181,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of isSameWord method, of class PdfLocation.
+     * Test of isSameWord method, of class PdfCharacter.
      */
     @Test
     public void testIsSameWord() {
@@ -191,7 +191,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of isSameLine method, of class PdfLocation.
+     * Test of isSameLine method, of class PdfCharacter.
      */
     @Test
     public void testIsSameLine() {
@@ -201,7 +201,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of isWithinPermittedSpacing method, of class PdfLocation.
+     * Test of isWithinPermittedSpacing method, of class PdfCharacter.
      */
     @Test
     public void testIsWithinPermittedSpacing() {
@@ -211,7 +211,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of getMaxNextWordXpos method, of class PdfLocation.
+     * Test of getMaxNextWordXpos method, of class PdfCharacter.
      */
     @Test
     public void testGetMaxNextWordXpos() {
@@ -225,7 +225,7 @@ public class PdfCharacterTest {
     }
 
     /**
-     * Test of compareFloat method, of class PdfLocation.
+     * Test of compareFloat method, of class PdfCharacter.
      */
     @Test
     public void testCompareFloat() {

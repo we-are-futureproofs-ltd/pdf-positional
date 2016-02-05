@@ -68,26 +68,7 @@ public class PdfPositional extends PDFTextStripper {
             PdfPositional pdfPositional = new PdfPositional(input);
             pdfPositional.setConversion(new Float(1.388888888889));
 
-            pdfPositional.processFileArgument(args[args.length - 1]);
-            Pattern patternArgument = Pattern.compile("^-{2}([^=]+)[=]([\\s\\S]+)$");
-            Matcher matcher;
-            
-            for (int i = 0; i < args.length - 1; i++) {
-                matcher = patternArgument.matcher(args[i]);
-                while (matcher.find()) {
-                    switch (matcher.group(1)) {
-                        case "page":
-                            pdfPositional.setPageNumber(Integer.parseInt(matcher.group(2)));
-                            break;
-                        case "output":
-                            pdfPositional.setOutputFile(matcher.group(2));
-                            break;
-                        case "mode":
-                            pdfPositional.setMode(matcher.group(2).toLowerCase());
-                            break;
-                    }
-                }
-            }
+            pdfPositional.processParams(args);
 
             PDDocument document;
             RandomAccessFile scratchFile = null;
@@ -162,6 +143,33 @@ public class PdfPositional extends PDFTextStripper {
         
     }
     
+    /**
+     * process arguments
+     * @param args
+     * @throws IOException 
+     */
+    public void processParams (String[] args) throws IOException {
+        Pattern patternArgument = Pattern.compile("^-{2}([^=]+)[=]([\\s\\S]+)$");
+        Matcher matcher;
+
+        for (int i = 0; i < args.length - 1; i++) {
+            matcher = patternArgument.matcher(args[i]);
+            while (matcher.find()) {
+                switch (matcher.group(1)) {
+                    case "page":
+                        this.setPageNumber(Integer.parseInt(matcher.group(2)));
+                        break;
+                    case "output":
+                        this.setOutputFile(matcher.group(2));
+                        break;
+                    case "mode":
+                        this.setMode(matcher.group(2).toLowerCase());
+                        break;
+                }
+            }
+        }
+    }
+    
     public PdfWord currentWord;
     public PdfCharacter lastLocation;
     
@@ -177,7 +185,7 @@ public class PdfPositional extends PDFTextStripper {
                 currentWord.addCharacter(lastLocation);
             } else if (currentWord == null) {
                 currentWord = new PdfWord(lastLocation);
-            } else if (lineMatch == false) {
+            } else  {
                 this.storeWord();
                 currentWord = new PdfWord(lastLocation);
             }
@@ -430,16 +438,5 @@ public class PdfPositional extends PDFTextStripper {
         // initialize page and pdf data
         this.pageData = new JSONArray();
         this.pdfData = new JSONObject();
-    }
-    
-    /**
-     * process file argument
-     * 
-     * @param String file
-     * @return void
-     * @throws ParameterException 
-     */
-    private void processFileArgument (String file) throws ParameterException {
-
     }
 }

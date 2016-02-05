@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.util.Matrix;
@@ -24,6 +25,9 @@ import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.Assertion;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 /**
  *
  * @author jonny
@@ -37,11 +41,14 @@ public class PdfPositionalTest {
     private PdfWord word;
     private String outputFile;
     
+    static String testPath;
+    
     public PdfPositionalTest() {
     }
     
     @BeforeClass
     public static void setUpClass() {
+        testPath = Paths.get(".").toAbsolutePath().normalize().toString();
     }
     
     @AfterClass
@@ -85,6 +92,38 @@ public class PdfPositionalTest {
             fontSizeValue, fontSizeInPt, ws);
     }
     
+    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        
+        return new TextPosition(page, textPositionSt, textPositionEnd, 
+            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+            fontSizeValue, fontSizeInPt, ws){
+            @Override
+            public float getXDirAdj() {
+                    return xDirAdj;
+            }
+            @Override
+            public float getYDirAdj() {
+                    return yDirAdj;
+            }
+            @Override
+            public float getWidthDirAdj() {
+                    return width;
+            }
+            @Override
+            public float getHeightDir() {
+                    return height;
+            }
+        };
+    }
+    
     
     @Test
     public void testContructor() {
@@ -113,15 +152,25 @@ public class PdfPositionalTest {
     @Test
     public void testMainWithInvalidReg() {
         exit.expectSystemExitWithStatus(1);
-        PdfPositional.main(new String[] {"abc"});
+        PdfPositional.main(new String[] {testPath + "/test/pdf"});
     }
-
+    
     @Test
-    public void testMainWithInvalidExt() {
-        exit.expectSystemExitWithStatus(1);
-        PdfPositional.main(new String[] {"/Users/jonny/Development/futureproofs-pdf-positional/PdfPositional/pdf/"});
+    public void testMainWithSuccess() {
+        exit.expectSystemExitWithStatus(0);
+        PdfPositional.main(new String[] {testPath + "/test/pdf/blank.pdf"});
     }
+  
 
+
+//    @Test
+//    public void testMainWithSuccess() {
+//        File input = mock(File.class);
+//        when(input.isDirectory()).thenReturn(true);
+//        exit.expectSystemExitWithStatus(1);
+//        PdfPositional.main(new String[] {testPath + "/test/pdf/blank.pdf"});
+//    }
+//  
 
 //    @Test
 //    public void testMainWithEmptyArgs() {
@@ -146,13 +195,18 @@ public class PdfPositionalTest {
         assertNotNull(instance.currentWord);
         assertEquals("{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"ab\",\"height\":12.0}", instance.currentWord.toJson().toJSONString());
         
+        // test word on next line
+        instance.processTextPosition(createTextPosition("c", 0, 100, 0, 0));
+        assertNotNull(instance.lastLocation);
+        assertNotNull(instance.currentWord);
+        assertEquals("{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"word\":\"c\",\"height\":0.0}", instance.currentWord.toJson().toJSONString());
         
         // test whitespace char
         TextPosition text2 = createTextPosition(" ");
         instance.processTextPosition(text2);
         assertNotNull(instance.lastLocation);
         assertNull(instance.currentWord);
-        assertEquals("[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"ab\",\"height\":12.0}]", instance.getPageData().toJSONString());
+        assertEquals("[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"word\":\"ab\",\"height\":12.0},{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"word\":\"c\",\"height\":0.0}]", instance.getPageData().toJSONString());
     }
 
     /**
