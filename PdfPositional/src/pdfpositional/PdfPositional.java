@@ -94,9 +94,8 @@ public class PdfPositional extends PDFTextStripper {
     protected void run () throws FileNotFoundException, IOException, EncryptedDocumentException, ParameterException {
         PDDocument pdfDocument;
         RandomAccessFile scratchFile = null;
-
         if (this.getMode().equals("scratch")) {
-            File tmp = new File("temp.tmp");
+            File tmp = File.createTempFile("pdf", ".tmp");
             tmp.deleteOnExit();
             scratchFile = new RandomAccessFile(tmp, "rw");
             pdfDocument = PDDocument.loadNonSeq(this.getInputFile(), scratchFile);
