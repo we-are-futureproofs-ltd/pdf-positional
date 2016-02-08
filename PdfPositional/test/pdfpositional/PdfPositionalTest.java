@@ -7,8 +7,11 @@ package pdfpositional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Paths;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
@@ -25,9 +28,12 @@ import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.Assertion;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import pdfpositional.exceptions.EncryptedDocumentException;
+import pdfpositional.exceptions.ParameterException;
 /**
  *
  * @author jonny
@@ -35,7 +41,10 @@ import static org.mockito.Mockito.when;
 public class PdfPositionalTest {
     @Rule
     public final ExpectedSystemExit exit = ExpectedSystemExit.none();    
-
+    
+    @Rule 
+    public ExpectedException thrown = ExpectedException.none();
+    
     private PdfPositional instance;
     private File inputFile;
     private PdfWord word;
@@ -156,26 +165,48 @@ public class PdfPositionalTest {
     }
     
     @Test
+    public void testMainWithInvalidProtected() {
+        exit.expectSystemExitWithStatus(1);
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+        PdfPositional.main(new String[] {testPath + "/test/pdf/protected-test123.pdf"});
+        assertEquals("Encrypted Document Error", outContent.toString().trim());
+        System.setOut(null);
+    }
+
+    @Test
     public void testMainWithSuccess() {
         exit.expectSystemExitWithStatus(0);
         PdfPositional.main(new String[] {testPath + "/test/pdf/blank.pdf"});
     }
-  
+    
+    @Test
+    public void testRunWithEncryptedDocumentException() throws IOException, FileNotFoundException, ParameterException, EncryptedDocumentException {
+        instance.setInputFile(new File(testPath + "/test/pdf/protected-test123.pdf"));
+        thrown.expect(EncryptedDocumentException.class);
+        instance.run();
+    }
 
+    @Test
+    public void testRunWithParameterException() throws IOException, FileNotFoundException, ParameterException, EncryptedDocumentException {
+        instance.setInputFile(new File(testPath + "/test/pdf/blank.pdf"));
+        instance.setPageNumber(10);
+        thrown.expect(ParameterException.class);
+        instance.run();
+    }
 
-//    @Test
-//    public void testMainWithSuccess() {
-//        File input = mock(File.class);
-//        when(input.isDirectory()).thenReturn(true);
-//        exit.expectSystemExitWithStatus(1);
-//        PdfPositional.main(new String[] {testPath + "/test/pdf/blank.pdf"});
-//    }
-//  
-
-//    @Test
-//    public void testMainWithEmptyArgs() {
-//        PdfPositional.main(new String[] {"param", "b"});
-//    }
+    
+    @Test
+    public void testProcessParams() throws IOException {
+        instance.processParams(new String[] {"--page=100", testPath + "/test/pdf/blank.pdf"});
+        assertEquals(100, instance.getPageNumber());
+        
+        instance.processParams(new String[] {"--output=" + testPath + "/test/pdf/output.json", testPath + "/test/pdf/blank.pdf"});
+        assertEquals(testPath + "/test/pdf/output.json", instance.getOutputFile());
+        
+        instance.processParams(new String[] {"--mode=test", testPath + "/test/pdf/blank.pdf"});
+        assertEquals("test", instance.getMode());
+    }
 
     /**
      * Test of processTextPosition method, of class PdfPositional.
@@ -450,6 +481,24 @@ public class PdfPositionalTest {
         
         System.setOut(null);
         System.setErr(null);
+    }
+    
+    @Test
+    public void testWriteJSONToOutputStreamPrintWriter() throws Exception {
+        StringWriter out = new StringWriter();
+        JSONObject pdfData = new JSONObject();
+        pdfData.put("name", "value");
+        instance.setPdfData(pdfData);
+        instance.setOutputFile(testPath + "/test/pdf/output.json");
+        String expected = instance.getPdfData().toJSONString();
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream(); 
+        instance.outputStream = new PrintWriter(bOut); 
+        instance.writeJSONToOutputStream();
+        instance.outputStream.flush(); 
+        instance.outputStream.close(); 
+        
+        assertEquals(expected, bOut.toString().trim());
     }
 
     /**

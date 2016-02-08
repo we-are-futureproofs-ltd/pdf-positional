@@ -7,6 +7,7 @@ package pdfpositional;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -60,71 +61,12 @@ public class PdfPositional extends PDFTextStripper {
                 throw new ParameterException("File does not exist: " + file);
             }
 
-            // ensure it isnt a directory
-            if(input.isDirectory()) {
-                throw new ParameterException("File is a directory: " + file);
-            }
-        
             PdfPositional pdfPositional = new PdfPositional(input);
             pdfPositional.setConversion(new Float(1.388888888889));
 
             pdfPositional.processParams(args);
 
-            PDDocument document;
-            RandomAccessFile scratchFile = null;
-
-            if (pdfPositional.getMode().equals("scratch")) {
-                File tmp = new File("temp.tmp");
-                tmp.deleteOnExit();
-                scratchFile = new RandomAccessFile(tmp, "rw");
-                document = PDDocument.loadNonSeq(pdfPositional.getInputFile(), scratchFile);
-            } else {
-                document = PDDocument.load(pdfPositional.getInputFile());
-            }
-        
-            // check for encrypted document
-            if (document.isEncrypted()) {
-                try {
-                    document.decrypt("");
-                } catch (CryptographyException | IOException e) {
-                    document.close();
-                    throw new EncryptedDocumentException();
-                }
-            }
-            
-            List allPages = document.getDocumentCatalog().getAllPages();
-            if (pdfPositional.hasPageNumber()) { 
-                if (document.getNumberOfPages() < pdfPositional.getPageNumber()) {
-                    throw new ParameterException("illegal page number");
-                }
-                PDPage page = (PDPage) allPages.get(pdfPositional.getPageNumber() - 1);
-                PDStream contents = page.getContents();
-                if (contents != null) {
-                    pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
-                    pdfPositional.addPageDataToPdfData();
-                    pdfPositional.writeJSONToOutputStream();
-                }
-            } else {
-                for (int i = 0; i < allPages.size(); i++) {
-                    pdfPositional.setPageNumber(i + 1);
-                    PDPage page = (PDPage) allPages.get(i);
-                    PDStream contents = page.getContents();
-
-                    if (contents != null) {
-                        pdfPositional.processStream(page, page.findResources(), page.getContents().getStream());
-                        pdfPositional.addPageDataToPdfData();
-                        pdfPositional.writeJSONToOutputStream();
-                    }
-                    
-                    page.clear();
-                }
-            }
-            
-            pdfPositional.destroyOutputStream();
-            document.close();
-            if (scratchFile != null) {
-                scratchFile.close();
-            }
+            pdfPositional.run();
             
             System.exit(0);
         } catch (ParameterException ex) {
@@ -134,13 +76,77 @@ public class PdfPositional extends PDFTextStripper {
             System.out.println("Encrypted Document Error");
             System.exit(1);
         } catch (IOException ex) {
-            System.out.println("IO Error: " + ex.getMessage());
+            System.out.println("IO Error" + ex.getMessage());
             System.exit(1);
         } catch (NumberFormatException ex) {
             System.out.println("NumberFormat Error: " + ex.getMessage());
             System.exit(1);
         }
-        
+    }
+    
+    /**
+     * run extraction process
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws EncryptedDocumentException
+     * @throws ParameterException 
+     */
+    protected void run () throws FileNotFoundException, IOException, EncryptedDocumentException, ParameterException {
+        PDDocument pdfDocument;
+        RandomAccessFile scratchFile = null;
+
+        if (this.getMode().equals("scratch")) {
+            File tmp = new File("temp.tmp");
+            tmp.deleteOnExit();
+            scratchFile = new RandomAccessFile(tmp, "rw");
+            pdfDocument = PDDocument.loadNonSeq(this.getInputFile(), scratchFile);
+        } else {
+            pdfDocument = PDDocument.load(this.getInputFile());
+        }
+
+        // check for encrypted document
+        if (pdfDocument.isEncrypted()) {
+            try {
+                pdfDocument.decrypt("");
+            } catch (CryptographyException | IOException e) {
+                pdfDocument.close();
+                throw new EncryptedDocumentException();
+            }
+        }
+
+        List allPages = pdfDocument.getDocumentCatalog().getAllPages();
+        if (this.hasPageNumber()) { 
+            if (pdfDocument.getNumberOfPages() < this.getPageNumber()) {
+                throw new ParameterException("illegal page number");
+            }
+            PDPage page = (PDPage) allPages.get(this.getPageNumber() - 1);
+            PDStream contents = page.getContents();
+            if (contents != null) {
+                this.processStream(page, page.findResources(), page.getContents().getStream());
+                this.addPageDataToPdfData();
+                this.writeJSONToOutputStream();
+            }
+        } else {
+            for (int i = 0; i < allPages.size(); i++) {
+                this.setPageNumber(i + 1);
+                PDPage page = (PDPage) allPages.get(i);
+                PDStream contents = page.getContents();
+
+                if (contents != null) {
+                    this.processStream(page, page.findResources(), page.getContents().getStream());
+                    this.addPageDataToPdfData();
+                    this.writeJSONToOutputStream();
+                }
+
+                page.clear();
+            }
+        }
+
+        this.destroyOutputStream();
+        pdfDocument.close();
+        if (scratchFile != null) {
+            scratchFile.close();
+        }
     }
     
     /**
@@ -148,10 +154,9 @@ public class PdfPositional extends PDFTextStripper {
      * @param args
      * @throws IOException 
      */
-    public void processParams (String[] args) throws IOException {
+    protected void processParams (String[] args) throws IOException {
         Pattern patternArgument = Pattern.compile("^-{2}([^=]+)[=]([\\s\\S]+)$");
         Matcher matcher;
-
         for (int i = 0; i < args.length - 1; i++) {
             matcher = patternArgument.matcher(args[i]);
             while (matcher.find()) {
@@ -433,6 +438,7 @@ public class PdfPositional extends PDFTextStripper {
             System.out.println(out.toString());
         } else {
             this.outputStream.println(out.toString());
+            this.outputStream.flush(); 
         }
         
         // initialize page and pdf data
