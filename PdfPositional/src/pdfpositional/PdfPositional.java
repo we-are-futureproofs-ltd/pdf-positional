@@ -128,17 +128,23 @@ public class PdfPositional extends PDFTextStripper {
             }
         } else {
             for (int i = 0; i < allPages.size(); i++) {
+                System.out.println(i);
                 this.setPageNumber(i + 1);
                 PDPage page = (PDPage) allPages.get(i);
-                PDStream contents = page.getContents();
+                try {
+                    PDStream contents = page.getContents();
 
-                if (contents != null) {
-                    this.processStream(page, page.findResources(), page.getContents().getStream());
-                    this.addPageDataToPdfData();
-                    this.writeJSONToOutputStream();
+                    if (contents != null) {
+                        this.processStream(page, page.findResources(), page.getContents().getStream());
+                        this.addPageDataToPdfData();
+                        this.writeJSONToOutputStream();
+                    }
+
+                } catch (Exception ex) {
+                   System.out.println("caught you: " + ex.getMessage()); 
+                } finally {
+                    page.clear();
                 }
-
-                page.clear();
             }
         }
 
