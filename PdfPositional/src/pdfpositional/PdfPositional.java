@@ -128,7 +128,6 @@ public class PdfPositional extends PDFTextStripper {
             }
         } else {
             for (int i = 0; i < allPages.size(); i++) {
-                System.out.println(i);
                 this.setPageNumber(i + 1);
                 PDPage page = (PDPage) allPages.get(i);
                 try {
@@ -141,7 +140,7 @@ public class PdfPositional extends PDFTextStripper {
                     }
 
                 } catch (Exception ex) {
-                   System.out.println("caught you: " + ex.getMessage()); 
+                    // do nothing
                 } finally {
                     page.clear();
                 }
