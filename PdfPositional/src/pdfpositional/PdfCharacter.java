@@ -141,24 +141,17 @@ public class PdfCharacter {
         return Math.floor(val1 * 10) == Math.floor(val2 * 10);
     }
     
-    private static final String REGEX_WHITESPACE = "[^a-zA-Z0-9\\uFB00-\\uFB05\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u017F]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
-    
     /**
      * is character a white space
      * @return boolean
      */
     public boolean isWhiteSpace() {
         String chr = this.position.getCharacter();
-        if (chr.matches(REGEX_WHITESPACE)) {
+        if (chr.matches("[^a-zA-Z0-9" + CharacterMapping.getRegex() + "]")) {
             return true;
         }
         
         return (Character.isWhitespace(chr.charAt(0)));
-    }
-    
-    
-    public static boolean isBetween(int x, int lower, int upper) {
-        return lower <= x && x <= upper;
     }
     
     /**
