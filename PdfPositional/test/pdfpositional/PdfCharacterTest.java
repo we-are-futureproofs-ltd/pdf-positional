@@ -259,6 +259,10 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetNormalizedCharacter() {
+        Long[] keys = {64256L, 64257L, 64258L, 64259L, 64260L, 64261L};
+        String[] values = {"ff", "fi", "fl", "ffi", "ffl", "st"};
+        CharacterMapping.addItems(keys, values);
+        
         for (int i = 0; i < nonWhitespace.length; i++) {
             instance.setPosition(this.createTextPosition(nonWhitespace[i], 0, 0, 0, 0));
             assertEquals(nonWhitespace[i], instance.getNormalizedCharacter());
@@ -266,6 +270,8 @@ public class PdfCharacterTest {
         
         for (int i = 0; i < ligaturesCode.length; i++) {
             instance.setPosition(this.createTextPosition(Character.toString((char)ligaturesCode[i]), 0, 0, 0, 0));
+//            System.out.println(ligaturesConv[i]);
+//            System.out.println(instance.getNormalizedCharacter());
             assertEquals(ligaturesConv[i], instance.getNormalizedCharacter());
         }
     }

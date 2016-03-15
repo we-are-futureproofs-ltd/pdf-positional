@@ -9,9 +9,9 @@ import java.util.HashMap;
  * @author jonny
  */
 public class CharacterMapping {
-    private static final HashMap<Long, String> map = new HashMap<>();
-    private static final CharacterMapping instance = new CharacterMapping();
-    private static final ArrayList<Long> indexes = new ArrayList<Long>();
+    private static final HashMap<Long, String> MAP = new HashMap<>();
+    private static final CharacterMapping INSTANCE = new CharacterMapping();
+    private static final ArrayList<Long> INDEXES = new ArrayList<>();
     private static String regex = null;
 
     /**
@@ -25,7 +25,7 @@ public class CharacterMapping {
      * @return 
      */
     public static CharacterMapping getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**
@@ -34,7 +34,7 @@ public class CharacterMapping {
      * @return 
      */
     public static String getValue(Long key) {
-        return map.get(key);
+        return MAP.get(key);
     }
 
     /**
@@ -58,8 +58,8 @@ public class CharacterMapping {
      * @param value 
      */
     public static void addItem(Long key, String value) {
-        map.put(key, value);
-        indexes.add(key);
+        MAP.put(key, value);
+        INDEXES.add(key);
     }
     
     /**
@@ -83,12 +83,12 @@ public class CharacterMapping {
             return regex;
         }
         
-        Collections.sort(indexes);
+        Collections.sort(INDEXES);
         long rangeStart = -1;
         long rangeEnd = -1;
         regex = "";
         
-        for(Long code: indexes){
+        for(Long code: INDEXES){
             if ((rangeStart == -1) || (code != (rangeEnd + 1))) {
                 regex += getRegexString(rangeStart, rangeEnd);
                 rangeStart = code;

@@ -163,10 +163,9 @@ public class PdfCharacter {
         String mapping;
         
         if ((mapping = CharacterMapping.getValue(charCode)) != null) {
-            //System.out.println(this.position.getCharacter().charAt(0) + " = " + mapping);
             return mapping;
         }
-        //System.out.println(this.position.getCharacter().charAt(0) + " = " + this.position.getCharacter().charAt(0));
+
         return this.position.getCharacter();
     }
 
