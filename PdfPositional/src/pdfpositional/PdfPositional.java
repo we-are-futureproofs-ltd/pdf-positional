@@ -10,12 +10,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.List;
 
 import java.io.StringWriter;
+import java.util.Iterator;
 import org.apache.pdfbox.exceptions.CryptographyException;
 
 import pdfpositional.exceptions.*;
@@ -29,6 +32,8 @@ import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
 import org.apache.pdfbox.io.RandomAccessFile;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 /**
@@ -60,12 +65,27 @@ public class PdfPositional extends PDFTextStripper {
             if(!input.exists()) {
                 throw new ParameterException("File does not exist: " + file);
             }
+            
+            // prepare character map
+            JSONParser parser = new JSONParser();
+            InputStream i = PdfPositional.class.getResourceAsStream("mappings.json");
+            Object obj = parser.parse(new InputStreamReader(i));
+            JSONObject jsonObject = (JSONObject) obj;
 
+            for(Iterator replacements = jsonObject.keySet().iterator(); replacements.hasNext();) {
+                String replacement = (String) replacements.next();
+                Iterator<Long> matches = ((JSONArray)jsonObject.get(replacement)).iterator();
+                while (matches.hasNext()) {
+                    CharacterMapping.addItem(matches.next(), replacement);
+                }
+            }
+            
+            // configure positional object
             PdfPositional pdfPositional = new PdfPositional(input);
             pdfPositional.setConversion(new Float(1.388888888889));
-
             pdfPositional.processParams(args);
 
+            // run positional object
             pdfPositional.run();
             
             System.exit(0);
@@ -80,6 +100,9 @@ public class PdfPositional extends PDFTextStripper {
             System.exit(1);
         } catch (NumberFormatException ex) {
             System.out.println("NumberFormat Error: " + ex.getMessage());
+            System.exit(1);
+        } catch (ParseException ex) {
+            System.out.println("Parse Exception: " + ex.getMessage());
             System.exit(1);
         }
     }

@@ -5,6 +5,7 @@
  */
 package pdfpositional;
 
+import java.util.HashMap;
 import org.apache.pdfbox.util.TextPosition;
 
 /**
@@ -12,6 +13,8 @@ import org.apache.pdfbox.util.TextPosition;
  * @author jonny
  */
 public class PdfCharacter {
+    private HashMap<Integer, String> map;
+    
     /**
      * Get the value of xPos
      *
@@ -138,7 +141,7 @@ public class PdfCharacter {
         return Math.floor(val1 * 10) == Math.floor(val2 * 10);
     }
     
-    private static final String REGEX_WHITESPACE = "[^a-zA-Z0-9\\uFB00\\uFB01\\uFB02\\uFB03\\uFB04\\uFB05\\uFB06]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
+    private static final String REGEX_WHITESPACE = "[^a-zA-Z0-9\\uFB00-\\uFB05\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u017F]"; // old = "[-,.\\[\\](:;!?)/\\u00A0]"
     
     /**
      * is character a white space
@@ -146,11 +149,16 @@ public class PdfCharacter {
      */
     public boolean isWhiteSpace() {
         String chr = this.position.getCharacter();
-        if (this.position.getCharacter().matches(REGEX_WHITESPACE)) {
+        if (chr.matches(REGEX_WHITESPACE)) {
             return true;
         }
         
         return (Character.isWhitespace(chr.charAt(0)));
+    }
+    
+    
+    public static boolean isBetween(int x, int lower, int upper) {
+        return lower <= x && x <= upper;
     }
     
     /**
@@ -158,15 +166,15 @@ public class PdfCharacter {
      * @return String
      */
     public String getNormalizedCharacter() {
-        switch((int)this.position.getCharacter().charAt(0)) {
-            case 64256: return "ff";
-            case 64257: return "fi";
-            case 64258: return "fl";
-            case 64259: return "ffi";
-            case 64260: return "ffl";
-            case 64261: return "st";
-            default: return this.position.getCharacter();
+        long charCode = (long)this.position.getCharacter().charAt(0);
+        String mapping;
+        
+        if ((mapping = CharacterMapping.getValue(charCode)) != null) {
+            //System.out.println(this.position.getCharacter().charAt(0) + " = " + mapping);
+            return mapping;
         }
+        //System.out.println(this.position.getCharacter().charAt(0) + " = " + this.position.getCharacter().charAt(0));
+        return this.position.getCharacter();
     }
 
 
