@@ -56,7 +56,7 @@ public class PdfWord {
      *
      * @param softBreak new value of softBreak
      */
-    private void setSoftBreak(Boolean softBreak) {
+    public void setSoftBreak(Boolean softBreak) {
         this.softBreak = softBreak;
     }
 

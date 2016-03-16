@@ -270,8 +270,6 @@ public class PdfCharacterTest {
         
         for (int i = 0; i < ligaturesCode.length; i++) {
             instance.setPosition(this.createTextPosition(Character.toString((char)ligaturesCode[i]), 0, 0, 0, 0));
-//            System.out.println(ligaturesConv[i]);
-//            System.out.println(instance.getNormalizedCharacter());
             assertEquals(ligaturesConv[i], instance.getNormalizedCharacter());
         }
     }

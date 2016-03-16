@@ -5,6 +5,10 @@
  */
 package pdfpositional;
 
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
+import org.apache.pdfbox.util.TextPosition;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,6 +21,8 @@ import static org.junit.Assert.*;
  * @author jonny
  */
 public class PdfWordPositionTest {
+    PdfCharacter char1;
+    PdfCharacter char2;
     
     public PdfWordPositionTest() {
     }
@@ -31,10 +37,48 @@ public class PdfWordPositionTest {
     
     @Before
     public void setUp() {
+        char1 = createPdfCharacter("a", 0, 100, 10, 10);
+        char2 = createPdfCharacter("b", 10, 100, 10, 10);
     }
     
     @After
     public void tearDown() {
+    }
+    
+    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        
+        return new TextPosition(page, textPositionSt, textPositionEnd, 
+            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+            fontSizeValue, fontSizeInPt, ws){
+            @Override
+            public float getXDirAdj() {
+                    return xDirAdj;
+            }
+            @Override
+            public float getYDirAdj() {
+                    return yDirAdj;
+            }
+            @Override
+            public float getWidthDirAdj() {
+                    return width;
+            }
+            @Override
+            public float getHeightDir() {
+                    return height;
+            }
+        };
+    }
+    
+    public PdfCharacter createPdfCharacter(String character, float xDirAdj, float yDirAdj, float width, float height) {
+        return new PdfCharacter(createTextPosition(character, xDirAdj, yDirAdj, width, height), new Float(1));
     }
 
     /**
@@ -42,13 +86,8 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetStart() {
-        System.out.println("getStart");
-        PdfWordPosition instance = null;
-        PdfCharacter expResult = null;
-        PdfCharacter result = instance.getStart();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(char1, instance.getStart());
     }
 
     /**
@@ -56,12 +95,9 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testSetStart() {
-        System.out.println("setStart");
-        PdfCharacter start = null;
-        PdfWordPosition instance = null;
-        instance.setStart(start);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        instance.setStart(char2);
+        assertEquals(char2, instance.getStart());
     }
 
     /**
@@ -69,13 +105,8 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetEnd() {
-        System.out.println("getEnd");
-        PdfWordPosition instance = null;
-        PdfCharacter expResult = null;
-        PdfCharacter result = instance.getEnd();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(char1, instance.getEnd());
     }
 
     /**
@@ -83,12 +114,9 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testSetEnd() {
-        System.out.println("setEnd");
-        PdfCharacter end = null;
-        PdfWordPosition instance = null;
-        instance.setEnd(end);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        instance.setEnd(char2);
+        assertEquals(char2, instance.getEnd());
     }
 
     /**
@@ -96,13 +124,11 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetWidth() {
-        System.out.println("getWidth");
-        PdfWordPosition instance = null;
-        float expResult = 0.0F;
-        float result = instance.getWidth();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(10.0F, instance.getWidth(), 0.0);
+        
+        instance = new PdfWordPosition(char1, char2);
+        assertEquals(20.0F, instance.getWidth(), 0.0);
     }
 
     /**
@@ -110,13 +136,8 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetHeight() {
-        System.out.println("getHeight");
-        PdfWordPosition instance = null;
-        float expResult = 0.0F;
-        float result = instance.getHeight();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(10.0F, instance.getHeight(), 0.0);
     }
 
     /**
@@ -124,13 +145,8 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetStartX() {
-        System.out.println("getStartX");
-        PdfWordPosition instance = null;
-        float expResult = 0.0F;
-        float result = instance.getStartX();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(0.0F, instance.getStartX(), 0.0);
     }
 
     /**
@@ -138,13 +154,8 @@ public class PdfWordPositionTest {
      */
     @Test
     public void testGetStartY() {
-        System.out.println("getStartY");
-        PdfWordPosition instance = null;
-        float expResult = 0.0F;
-        float result = instance.getStartY();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        PdfWordPosition instance = new PdfWordPosition(char1, char1);
+        assertEquals(100.0F, instance.getStartY(), 0.0);
     }
     
 }

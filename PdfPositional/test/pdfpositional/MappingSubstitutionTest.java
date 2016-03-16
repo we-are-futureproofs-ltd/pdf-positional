@@ -42,12 +42,7 @@ public class MappingSubstitutionTest {
      */
     @Test
     public void testGetInstance() {
-        System.out.println("getInstance");
-        MappingSubstitution expResult = null;
-        MappingSubstitution result = MappingSubstitution.getInstance();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(MappingSubstitution.getInstance() instanceof MappingSubstitution);
     }
     
 }

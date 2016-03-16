@@ -17,6 +17,10 @@ import static org.junit.Assert.*;
  * @author jonny
  */
 public class MappingTest {
+    Long key = 1L;
+    String value = "value";
+    Long[] keys = {1L, 2L, 3L};
+    String[] values = {"val1", "val2", "val3"};
     
     public MappingTest() {
     }
@@ -42,14 +46,12 @@ public class MappingTest {
      */
     @Test
     public void testGetValue() {
-        System.out.println("getValue");
-        Long key = null;
         Mapping instance = new MappingImpl();
-        String expResult = "";
-        String result = instance.getValue(key);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        assertEquals(null, instance.getValue(key));
+
+        instance.addItem(key, value);
+        assertEquals(value, instance.getValue(key));
     }
 
     /**
@@ -57,13 +59,12 @@ public class MappingTest {
      */
     @Test
     public void testAddItems() {
-        System.out.println("addItems");
-        Long[] keys = null;
-        String[] values = null;
         Mapping instance = new MappingImpl();
         instance.addItems(keys, values);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        assertEquals(values[0], instance.getValue(keys[0]));
+        assertEquals(values[1], instance.getValue(keys[1]));
+        assertEquals(values[2], instance.getValue(keys[2]));
     }
 
     /**
@@ -71,13 +72,9 @@ public class MappingTest {
      */
     @Test
     public void testAddItem() {
-        System.out.println("addItem");
-        Long key = null;
-        String value = "";
         Mapping instance = new MappingImpl();
         instance.addItem(key, value);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(value, instance.getValue(key));
     }
 
     /**
@@ -85,15 +82,13 @@ public class MappingTest {
      */
     @Test
     public void testGetRegexString() {
-        System.out.println("getRegexString");
-        Long rangeStart = null;
-        Long rangeEnd = null;
         Mapping instance = new MappingImpl();
-        String expResult = "";
-        String result = instance.getRegexString(rangeStart, rangeEnd);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        assertEquals("\\u0001-\\u000A", instance.getRegexString(1L, 10L));
+        assertEquals("\\u0001", instance.getRegexString(1L, 1L));
+        assertEquals("", instance.getRegexString(-1L, -1L));
+        assertEquals("", instance.getRegexString(-1L, 1L));
+        assertEquals("", instance.getRegexString(1L, -1L));
     }
 
     /**
@@ -101,13 +96,12 @@ public class MappingTest {
      */
     @Test
     public void testGetRegex() {
-        System.out.println("getRegex");
         Mapping instance = new MappingImpl();
-        String expResult = "";
-        String result = instance.getRegex();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.addItems(keys, values);
+
+        assertEquals("\\u0001-\\u0003", instance.getRegex());
+        instance.addItem(4L, "val4");
+        assertEquals("\\u0001-\\u0003", instance.getRegex());
     }
 
     public class MappingImpl extends Mapping {

@@ -42,12 +42,7 @@ public class MappingSoftBreakTest {
      */
     @Test
     public void testGetInstance() {
-        System.out.println("getInstance");
-        MappingSoftBreak expResult = null;
-        MappingSoftBreak result = MappingSoftBreak.getInstance();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(MappingSoftBreak.getInstance() instanceof MappingSoftBreak);
     }
     
 }

@@ -71,8 +71,8 @@ public class PdfWordTest {
     }
     
     public void prepSingletons() {
-        Long[] sbKeys = {173L, 45L, 8208L};
-        String[] sbValues = {"-", "-", "-"};
+        Long[] sbKeys = {173L, 45L, 8208L, 122L};
+        String[] sbValues = {"-", "-", "-", "-"};
         MappingSoftBreak.getInstance().addItems(sbKeys, sbValues);
         
         Long[] subKeys = {192L, 198L, 199L};
@@ -104,6 +104,19 @@ public class PdfWordTest {
     }
 
     /**
+     * Test of setSoftBreak method, of class PdfWord.
+     */
+    @Test
+    public void testSetSoftBreak() {
+        PdfWord instanceTmp = new PdfWord(char1);
+        instanceTmp.setSoftBreak(Boolean.TRUE);
+        assertTrue(instanceTmp.isSoftBreak());
+
+        instanceTmp.setSoftBreak(Boolean.FALSE);
+        assertFalse(instanceTmp.isSoftBreak());
+    }
+
+    /**
      * Test of setWord method, of class PdfWord.
      */
     @Test
@@ -124,6 +137,13 @@ public class PdfWordTest {
         assertEquals(posTmp.size(), 1);
         assertEquals(posTmp.get(0).getStart(), char1);
         assertEquals(posTmp.get(0).getEnd(), char2);
+        
+        PdfWord instanceTmp = new PdfWord(char1);
+        PdfCharacter char3 = this.createPdfCharacter("z");
+        instanceTmp.addCharacter(char3);
+        assertEquals(instanceTmp.getWord(), "a");
+        instanceTmp.addCharacter(char2);
+        assertEquals(instanceTmp.getWord(), "ab");
         
     }
 
