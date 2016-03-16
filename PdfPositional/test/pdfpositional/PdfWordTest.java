@@ -28,7 +28,6 @@ public class PdfWordTest {
     TextPosition textPosition;
     private PdfCharacter char1;
     private PdfCharacter char2;
-    private PdfCharacter char3;
     private PdfWord instance;
     
     public PdfWordTest() {
@@ -46,7 +45,6 @@ public class PdfWordTest {
     public void setUp() {
         char1 = this.createPdfCharacter("a");
         char2 = this.createPdfCharacter("b");
-        char3 = this.createPdfCharacter("b");
         
         instance = new PdfWord(char1);
     }
