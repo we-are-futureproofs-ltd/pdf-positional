@@ -50,7 +50,7 @@ public class PdfPositional extends PDFTextStripper {
             if (args.length == 0) {
                 throw new ParameterException("No file parameter specified");
             }
-            
+
             String file = args[args.length - 1];
             Pattern patternFile = Pattern.compile("(?i)^[\\w,\\s-()/]+\\.pdf$");
             Matcher matcherFile = patternFile.matcher(file);
@@ -70,16 +70,30 @@ public class PdfPositional extends PDFTextStripper {
             JSONParser parser = new JSONParser();
             InputStream i = PdfPositional.class.getResourceAsStream("mappings.json");
             Object obj = parser.parse(new InputStreamReader(i));
-            JSONObject jsonObject = (JSONObject) obj;
-
+            JSONObject jsonObjectBase = (JSONObject) obj;
+            JSONObject jsonObject = (JSONObject)jsonObjectBase.get("sub");
+            
+            // map substitutions
+            MappingSubstitution mappingSubstitution = MappingSubstitution.getInstance();
             for(Iterator replacements = jsonObject.keySet().iterator(); replacements.hasNext();) {
                 String replacement = (String) replacements.next();
                 Iterator<Long> matches = ((JSONArray)jsonObject.get(replacement)).iterator();
                 while (matches.hasNext()) {
-                    CharacterMapping.addItem(matches.next(), replacement);
+                    mappingSubstitution.addItem(matches.next(), replacement);
                 }
             }
             
+            // map soft breaks
+            jsonObject = (JSONObject)jsonObjectBase.get("soft");
+            MappingSoftBreak mappingSoftBreak = MappingSoftBreak.getInstance();
+            for(Iterator replacements = jsonObject.keySet().iterator(); replacements.hasNext();) {
+                String replacement = (String) replacements.next();
+                Iterator<Long> matches = ((JSONArray)jsonObject.get(replacement)).iterator();
+                while (matches.hasNext()) {
+                    mappingSoftBreak.addItem(matches.next(), replacement);
+                }
+            }
+
             // configure positional object
             PdfPositional pdfPositional = new PdfPositional(input);
             pdfPositional.setConversion(new Float(1.388888888889));
@@ -213,7 +227,7 @@ public class PdfPositional extends PDFTextStripper {
 
         // if char is not punctuation or whitespace
         if (!lastLocation.isWhiteSpace()) {
-            if ((currentWord != null) && (lineMatch == true)) {
+            if ((currentWord != null) && ((lineMatch == true) || currentWord.isSoftBreak())) {
                 currentWord.addCharacter(lastLocation);
             } else if (currentWord == null) {
                 currentWord = new PdfWord(lastLocation);

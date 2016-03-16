@@ -1,10 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pdfpositional;
 
+import java.util.ArrayList;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
@@ -12,48 +9,18 @@ import org.json.simple.JSONObject;
  * @author jonny
  */
 public class PdfWord {
+    private final ArrayList<PdfWordPosition> positions = new ArrayList<>();
+    private PdfWordPosition position;
     
-    private PdfCharacter locationStart;
-
-    /**
-     * Get the value of locationStart
-     *
-     * @return the value of locationStart
-     */
-    public PdfCharacter getLocationStart() {
-        return locationStart;
-    }
-
-    /**
-     * Set the value of locationStart
-     *
-     * @param locationStart new value of locationStart
-     */
-    public void setLocationStart(PdfCharacter locationStart) {
-        this.locationStart = locationStart;
-    }
-
-        private PdfCharacter locationEnd;
-
-    /**
-     * Get the value of locationEnd
-     *
-     * @return the value of locationEnd
-     */
-    public PdfCharacter getLocationEnd() {
-        return locationEnd;
-    }
-
-    /**
-     * Set the value of locationEnd
-     *
-     * @param locationEnd new value of locationEnd
-     */
-    public void setLocationEnd(PdfCharacter locationEnd) {
-        this.locationEnd = locationEnd;
-    }
-
     private String word;
+    
+    /**
+     * positions array getter
+     * @return ArrayList
+     */
+    public ArrayList<PdfWordPosition> getPositions() {
+        return positions;
+    }
 
     /**
      * Get the value of word
@@ -73,31 +40,90 @@ public class PdfWord {
         this.word = word;
     }
     
-    public void addCharacter(PdfCharacter location) {
-        this.setWord(this.getWord() + location.getNormalizedCharacter());
-        this.setLocationEnd(location);
+    private Boolean softBreak = false;
+
+    /**
+     * Get the value of softBreak
+     *
+     * @return the value of softBreak
+     */
+    public Boolean isSoftBreak() {
+        return softBreak;
     }
 
+    /**
+     * Set the value of softBreak
+     *
+     * @param softBreak new value of softBreak
+     */
+    private void setSoftBreak(Boolean softBreak) {
+        this.softBreak = softBreak;
+    }
 
+    /**
+     * add character to word
+     * @param location 
+     */
+    public void addCharacter(PdfCharacter location) {
+        if (location.isSoftWordBreak()) {
+            String s = location.getNormalizedCharacter();
+            this.setSoftBreak(true);
+            this.position.setEnd(location);
+            return;
+        }
+        
+        // if the last letter was a soft break then we need a new coord set
+        if (isSoftBreak()) {
+            this.setSoftBreak(false);
+            this.position = new PdfWordPosition(location, location);
+            this.positions.add(this.position);
+        }
+        
+        this.setWord(this.getWord() + location.getNormalizedCharacter());
+        this.position.setEnd(location);
+    }
+
+    /**
+     * constructor
+     * @param location 
+     */
     public PdfWord(PdfCharacter location) {
         this.word = location.getNormalizedCharacter();
-        this.locationStart = location;
-        this.locationEnd = location;
+        this.position = new PdfWordPosition(location, location);
+        this.positions.add(this.position);
     }
 
+    /**
+     * to string
+     * @return String
+     */
     @Override
     public String toString() {
         return this.word;
     }
     
-    
+    /**
+     * convert data to JSON object
+     * @return JSONObject
+     */
     public JSONObject toJson() {
         JSONObject obj = new JSONObject();
-        obj.put("word", this.getWord().replaceAll("[^\\x00-\\x7F]", ""));
-        obj.put("height", this.getLocationStart().getHeight());
-        obj.put("width", this.getLocationEnd().getxPos() - this.getLocationStart().getxPos() + this.getLocationEnd().getWidth());
-        obj.put("x", this.getLocationStart().getxPos());
-        obj.put("y", this.getLocationStart().getyPos());
+        JSONArray posArr = new JSONArray();
+        
+        // generate the positional data from array list
+        for (int i = 0; i < positions.size(); i++) {
+            PdfWordPosition pos = positions.get(i);
+            JSONObject posObj = new JSONObject();
+            posObj.put("height", pos.getHeight());
+            posObj.put("width", pos.getWidth());
+            posObj.put("x", pos.getStartX());
+            posObj.put("y", pos.getStartY());
+            posArr.add(posObj);
+        }
+        
+        // create root JSON
+        obj.put("word", getWord().replaceAll("[^\\x00-\\x7F]", ""));
+        obj.put("layout", posArr);
         
         return obj;
     }

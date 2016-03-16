@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pdfpositional;
 
 import java.util.HashMap;
@@ -147,11 +142,22 @@ public class PdfCharacter {
      */
     public boolean isWhiteSpace() {
         String chr = this.position.getCharacter();
-        if (chr.matches("[^a-zA-Z0-9" + CharacterMapping.getRegex() + "]")) {
+        if (chr.matches("[^a-zA-Z0-9" + 
+                MappingSubstitution.getInstance().getRegex() + 
+                MappingSoftBreak.getInstance().getRegex() + "]")) {
             return true;
         }
         
         return (Character.isWhitespace(chr.charAt(0)));
+    }
+    
+    /**
+     * determine if character is soft-breaking-character
+     * @return 
+     */
+    public boolean isSoftWordBreak() {
+        String chr = this.position.getCharacter();
+        return chr.matches("[" + MappingSoftBreak.getInstance().getRegex() + "]");
     }
     
     /**
@@ -162,7 +168,7 @@ public class PdfCharacter {
         long charCode = (long)this.position.getCharacter().charAt(0);
         String mapping;
         
-        if ((mapping = CharacterMapping.getValue(charCode)) != null) {
+        if ((mapping = MappingSubstitution.getInstance().getValue(charCode)) != null) {
             return mapping;
         }
 

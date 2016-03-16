@@ -261,7 +261,7 @@ public class PdfCharacterTest {
     public void testGetNormalizedCharacter() {
         Long[] keys = {64256L, 64257L, 64258L, 64259L, 64260L, 64261L};
         String[] values = {"ff", "fi", "fl", "ffi", "ffl", "st"};
-        CharacterMapping.addItems(keys, values);
+        MappingSubstitution.getInstance().addItems(keys, values);
         
         for (int i = 0; i < nonWhitespace.length; i++) {
             instance.setPosition(this.createTextPosition(nonWhitespace[i], 0, 0, 0, 0));
