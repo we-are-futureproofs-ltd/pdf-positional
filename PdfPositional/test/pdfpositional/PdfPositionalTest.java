@@ -63,6 +63,10 @@ public class PdfPositionalTest {
         Long[] subKeys = {192L, 198L, 199L};
         String[] subValues = {"A", "AE", "C"};
         MappingSubstitution.getInstance().addItems(subKeys, subValues);
+        
+        Long[] punKeys = {46L};
+        String[] punValues = {"."};
+        MappingPunctuation.getInstance().addItems(punKeys, punValues);
     }    
      
     @BeforeClass
@@ -192,6 +196,18 @@ public class PdfPositionalTest {
     }
     
     @Test
+    public void testMainWithSuccessPageParam() {
+        exit.expectSystemExitWithStatus(0);
+        PdfPositional.main(new String[] {"--page=1", testPath + "/test/pdf/blank.pdf"});
+    }
+    
+    @Test
+    public void testMainWithSuccessScratchParam() {
+        exit.expectSystemExitWithStatus(0);
+        PdfPositional.main(new String[] {"--mode=scratch", testPath + "/test/pdf/blank.pdf"});
+    }
+    
+    @Test
     public void testRunWithEncryptedDocumentException() throws IOException, FileNotFoundException, ParameterException, EncryptedDocumentException {
         instance.setInputFile(new File(testPath + "/test/pdf/protected-test123.pdf"));
         thrown.expect(EncryptedDocumentException.class);
@@ -229,26 +245,27 @@ public class PdfPositionalTest {
         
         assertNotNull(instance.lastLocation);
         assertNotNull(instance.currentWord);
-        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":\"a\"}", instance.currentWord.toJson().toJSONString());
+        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":{\"readable\":\"a\",\"normalised\":\"a\"}}", instance.currentWord.toJson().toJSONString());
 
         // test multi char word acceptance
         instance.processTextPosition(createTextPosition("b"));
         assertNotNull(instance.lastLocation);
         assertNotNull(instance.currentWord);
-        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":\"ab\"}", instance.currentWord.toJson().toJSONString());
+        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":{\"readable\":\"ab\",\"normalised\":\"ab\"}}", instance.currentWord.toJson().toJSONString());
         
         // test word on next line
         instance.processTextPosition(createTextPosition("c", 0, 100, 0, 0));
         assertNotNull(instance.lastLocation);
         assertNotNull(instance.currentWord);
-        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"height\":0.0}],\"word\":\"c\"}", instance.currentWord.toJson().toJSONString());
+        assertEquals("{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"height\":0.0}],\"word\":{\"readable\":\"c\",\"normalised\":\"c\"}}", instance.currentWord.toJson().toJSONString());
         
         // test whitespace char
         TextPosition text2 = createTextPosition(" ");
         instance.processTextPosition(text2);
         assertNotNull(instance.lastLocation);
         assertNull(instance.currentWord);
-        assertEquals("[{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":\"ab\"},{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"height\":0.0}],\"word\":\"c\"}]", instance.getPageData().toJSONString());
+        assertEquals("[{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":{\"readable\":\"ab\",\"normalised\":\"ab\"}}," +
+                "{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":100.0,\"height\":0.0}],\"word\":{\"readable\":\"c\",\"normalised\":\"c\"}}]", instance.getPageData().toJSONString());
     }
 
     /**

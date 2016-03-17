@@ -33,10 +33,24 @@ public class PdfCharacterTest {
          "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
          "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
         
-    private String[] whitespace = {"-", "_", "-", ",", ".", " ", "\r", "\n", "\t"};
+    private String[] whitespace = {"_", " ", "\r", "\n", "\t"};
 
     private int[] ligaturesCode = {64256, 64257, 64258, 64259, 64260, 64261};
     private String[] ligaturesConv = {"ff", "fi", "fl", "ffi", "ffl", "st"};
+    
+    public void prepSingletons() {
+        Long[] sbKeys = {173L, 45L, 8208L};
+        String[] sbValues = {"-", "-", "-"};
+        MappingSoftBreak.getInstance().addItems(sbKeys, sbValues);
+        
+        Long[] subKeys = {192L, 198L, 199L};
+        String[] subValues = {"A", "AE", "C"};
+        MappingSubstitution.getInstance().addItems(subKeys, subValues);
+        
+        Long[] punKeys = {46L};
+        String[] punValues = {"."};
+        MappingPunctuation.getInstance().addItems(punKeys, punValues);
+    }  
     
     public PdfCharacterTest() {
     }
@@ -51,6 +65,7 @@ public class PdfCharacterTest {
     
     @Before
     public void setUp() {
+        prepSingletons();
         tPos1 = createTextPosition("a", 10, 10, 8, 12);
         tPos2 = createTextPosition("b", 20, 10, 8, 12);
         tPos3 = createTextPosition("c", 40, 10, 8, 12);
@@ -259,8 +274,8 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetNormalizedCharacter() {
-        Long[] keys = {64256L, 64257L, 64258L, 64259L, 64260L, 64261L};
-        String[] values = {"ff", "fi", "fl", "ffi", "ffl", "st"};
+        Long[] keys = {64256L, 64257L, 64258L, 64259L, 64260L, 64261L, 8217L, 39L};
+        String[] values = {"ff", "fi", "fl", "ffi", "ffl", "st", "'", "'"};
         MappingSubstitution.getInstance().addItems(keys, values);
         
         for (int i = 0; i < nonWhitespace.length; i++) {
@@ -273,5 +288,64 @@ public class PdfCharacterTest {
             assertEquals(ligaturesConv[i], instance.getNormalizedCharacter());
         }
     }
+    
+    @Test
+    public void testIsApostrophe() {
+        TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
+        PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isApostrophe());
+        
+        textPosition = createTextPosition(Character.toString((char)39), 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertTrue(inst.isApostrophe());
+    }
+    
+    @Test
+    public void testIsPuctuationEnding() {
+        TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
+        PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isPuctuationEnding());
+        
+        textPosition = createTextPosition(".", 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertTrue(inst.isPuctuationEnding());
+    }
+    
+    @Test
+    public void testIsSoftWordBreak() {
+        TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
+        PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isSoftWordBreak());
+        
+        textPosition = createTextPosition("-", 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertTrue(inst.isSoftWordBreak());
+    }
+    
+    @Test
+    public void testIsWordStartCompatible() {
+        TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
+        PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
+        assertTrue(inst.isWordStartCompatible());
+        
+        // soft breaks are not valid start chars
+        textPosition = createTextPosition("-", 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isWordStartCompatible());
+        
+        // punctuation is not a valid start value
+        textPosition = createTextPosition(".", 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isWordStartCompatible());
+        
+        // apostrophe is not a valid start value
+        textPosition = createTextPosition("'", 0, 0, 0, 0);
+        inst = new PdfCharacter(textPosition, conversion1);
+        assertFalse(inst.isWordStartCompatible());
+    }    
+    
+    
+    
+    
     
 }

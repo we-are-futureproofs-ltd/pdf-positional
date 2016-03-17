@@ -131,6 +131,15 @@ public class PdfWord {
     }
     
     /**
+     * sanitize saved word
+     * @param word
+     * @return String
+     */
+    public String prepWordForSave(String word) {
+        return word.replaceAll("^[']|[^\\x00-\\x7F]|[']$", "");
+    }
+    
+    /**
      * convert data to JSON object
      * @return JSONObject
      */
@@ -151,8 +160,8 @@ public class PdfWord {
         
         // create root JSON
         JSONObject wordObj = new JSONObject();
-        wordObj.put("readable", getWord().replaceAll("[^\\x00-\\x7F]|[']$", ""));
-        wordObj.put("normalised", getWordNormailised().replaceAll("[^\\x00-\\x7F]|[']$", ""));
+        wordObj.put("readable", prepWordForSave(getWord()));
+        wordObj.put("normalised", prepWordForSave(getWordNormailised()));
         obj.put("word", wordObj);
         obj.put("layout", posArr);
         

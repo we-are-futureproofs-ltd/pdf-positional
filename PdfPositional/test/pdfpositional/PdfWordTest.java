@@ -78,6 +78,10 @@ public class PdfWordTest {
         Long[] subKeys = {192L, 198L, 199L};
         String[] subValues = {"A", "AE", "C"};
         MappingSubstitution.getInstance().addItems(subKeys, subValues);
+        
+        Long[] punKeys = {46L};
+        String[] punValues = {"."};
+        MappingPunctuation.getInstance().addItems(punKeys, punValues);
     }
 
     /**
@@ -160,6 +164,21 @@ public class PdfWordTest {
         assertEquals(instance.toString(), "");
 
     }
+    
+    /**
+     * Test of prepWordForSave method, of class PdfWord.
+     */
+    @Test
+    public void testPrepWordForSave() {
+        assertEquals(instance.prepWordForSave(""), "");
+        assertEquals(instance.prepWordForSave("az"), "az");
+        assertEquals(instance.prepWordForSave("AZ"), "AZ");
+        assertEquals(instance.prepWordForSave("09"), "09");
+        assertEquals(instance.prepWordForSave("a'b"), "a'b");
+        assertEquals(instance.prepWordForSave("a'"), "a");
+        assertEquals(instance.prepWordForSave(Character.toString((char)128)), "");
+        assertNotEquals(instance.prepWordForSave(Character.toString((char)127)), "");
+    }
 
     /**
      * Test of toJson method, of class PdfWord.
@@ -167,7 +186,7 @@ public class PdfWordTest {
     @Test
     public void testToJson() {
         assertTrue(instance.toJson() instanceof JSONObject);
-        String expectedJson = "{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":\"a\"}";
+        String expectedJson = "{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":{\"readable\":\"a\",\"normalised\":\"a\"}}";
         StringWriter out = new StringWriter();
         try {
             instance.toJson().writeJSONString(out);

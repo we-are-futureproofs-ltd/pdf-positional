@@ -7,7 +7,7 @@ import org.apache.pdfbox.util.TextPosition;
  * @author jonny
  */
 public class PdfCharacter {
-    public static final char apostrophe = 27;
+    public static final char apostrophe = 39;
     
     /**
      * Get the value of xPos
@@ -174,7 +174,7 @@ public class PdfCharacter {
      * @return 
      */
     public boolean isApostrophe() {
-        return (getNormalizedCharacter() == Character.toString((char)apostrophe));
+        return (getNormalizedCharacter().equals(Character.toString((char)apostrophe)));
     }
     
     /**

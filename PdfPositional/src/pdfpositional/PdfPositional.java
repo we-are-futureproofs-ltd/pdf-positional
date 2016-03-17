@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.List;
 
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Iterator;
 import org.apache.pdfbox.exceptions.CryptographyException;
 
