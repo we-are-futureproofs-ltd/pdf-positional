@@ -7,6 +7,8 @@ import org.apache.pdfbox.util.TextPosition;
  * @author jonny
  */
 public class PdfCharacter {
+    public static final char apostrophe = 27;
+    
     /**
      * Get the value of xPos
      *
@@ -168,11 +170,19 @@ public class PdfCharacter {
     }
     
     /**
+     * check for apostrophe
+     * @return 
+     */
+    public boolean isApostrophe() {
+        return (getNormalizedCharacter() == Character.toString((char)apostrophe));
+    }
+    
+    /**
      * check to see if letter can be used to start the word
      * @return 
      */
     public boolean isWordStartCompatible() {
-        return !isPuctuationEnding() && !isSoftWordBreak();
+        return !isPuctuationEnding() && !isSoftWordBreak() && !isApostrophe();
     }
     
     /**

@@ -235,7 +235,6 @@ public class PdfPositional extends PDFTextStripper {
 
         // if char is not punctuation or whitespace
         if (!lastLocation.isWhiteSpace()) {
-            String c = text.getCharacter();
             if ((currentWord != null) && ((lineMatch == true) || currentWord.isSoftBreak())) {
                 // if character is punctuating ending  
                 if (currentWord.addCharacter(lastLocation) == false) {

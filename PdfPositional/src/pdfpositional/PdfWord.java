@@ -151,7 +151,7 @@ public class PdfWord {
         
         // create root JSON
         JSONObject wordObj = new JSONObject();
-        wordObj.put("readable", getWord().replaceAll("[^\\x00-\\x7F]", ""));
+        wordObj.put("readable", getWord().replaceAll("[^\\x00-\\x7F]|[']", ""));
         wordObj.put("normalised", getWordNormailised().replaceAll("[^\\x00-\\x7F]", ""));
         obj.put("word", wordObj);
         obj.put("layout", posArr);
