@@ -168,6 +168,14 @@ public class PdfCharacter {
     }
     
     /**
+     * check to see if letter can be used to start the word
+     * @return 
+     */
+    public boolean isWordStartCompatible() {
+        return !isPuctuationEnding() && !isSoftWordBreak();
+    }
+    
+    /**
      * get normalized Character
      * @return String
      */

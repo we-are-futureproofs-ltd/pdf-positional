@@ -242,10 +242,14 @@ public class PdfPositional extends PDFTextStripper {
                     this.storeWord();
                 }
             } else if (currentWord == null) {
-                currentWord = new PdfWord(lastLocation);
+                if (lastLocation.isWordStartCompatible()) {
+                    currentWord = new PdfWord(lastLocation);
+                }
             } else  {
                 this.storeWord();
-                currentWord = new PdfWord(lastLocation);
+                if (lastLocation.isWordStartCompatible()) {
+                    currentWord = new PdfWord(lastLocation);
+                }
             }
         } else {
             this.storeWord();
