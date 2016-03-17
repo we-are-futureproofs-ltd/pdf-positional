@@ -71,8 +71,8 @@ public class PdfWordTest {
     }
     
     public void prepSingletons() {
-        Long[] sbKeys = {173L, 45L, 8208L, 122L};
-        String[] sbValues = {"-", "-", "-", "-"};
+        Long[] sbKeys = {173L, 45L, 8208L};
+        String[] sbValues = {"-", "-", "-"};
         MappingSoftBreak.getInstance().addItems(sbKeys, sbValues);
         
         Long[] subKeys = {192L, 198L, 199L};
@@ -139,12 +139,11 @@ public class PdfWordTest {
         assertEquals(posTmp.get(0).getEnd(), char2);
         
         PdfWord instanceTmp = new PdfWord(char1);
-        PdfCharacter char3 = this.createPdfCharacter("z");
+        PdfCharacter char3 = this.createPdfCharacter("-");
         instanceTmp.addCharacter(char3);
         assertEquals(instanceTmp.getWord(), "a");
         instanceTmp.addCharacter(char2);
         assertEquals(instanceTmp.getWord(), "ab");
-        
     }
 
     /**

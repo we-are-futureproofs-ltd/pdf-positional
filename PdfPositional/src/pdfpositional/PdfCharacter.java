@@ -1,6 +1,5 @@
 package pdfpositional;
 
-import java.util.HashMap;
 import org.apache.pdfbox.util.TextPosition;
 
 /**
@@ -8,8 +7,6 @@ import org.apache.pdfbox.util.TextPosition;
  * @author jonny
  */
 public class PdfCharacter {
-    private HashMap<Integer, String> map;
-    
     /**
      * Get the value of xPos
      *
@@ -144,7 +141,8 @@ public class PdfCharacter {
         String chr = this.position.getCharacter();
         if (chr.matches("[^a-zA-Z0-9" + 
                 MappingSubstitution.getInstance().getRegex() + 
-                MappingSoftBreak.getInstance().getRegex() + "]")) {
+                MappingSoftBreak.getInstance().getRegex() + 
+                MappingPunctuation.getInstance().getRegex() + "]")) {
             return true;
         }
         
@@ -158,6 +156,15 @@ public class PdfCharacter {
     public boolean isSoftWordBreak() {
         String chr = this.position.getCharacter();
         return chr.matches("[" + MappingSoftBreak.getInstance().getRegex() + "]");
+    }
+    
+    /**
+     * determine if character is ending punctuation
+     * @return 
+     */
+    public boolean isPuctuationEnding() {
+        String chr = this.position.getCharacter();
+        return chr.matches("[" + MappingPunctuation.getInstance().getRegex() + "]");
     }
     
     /**

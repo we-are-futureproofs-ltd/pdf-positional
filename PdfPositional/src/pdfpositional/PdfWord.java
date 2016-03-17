@@ -13,6 +13,23 @@ public class PdfWord {
     private PdfWordPosition position;
     
     private String word;
+    private String wordNormailised;
+
+    /**
+     * wordNormailised getter
+     * @return 
+     */
+    public String getWordNormailised() {
+        return wordNormailised;
+    }
+
+    /**
+     * wordNormailised setter
+     * @param wordNormailised 
+     */
+    public void setWordNormailised(String wordNormailised) {
+        this.wordNormailised = wordNormailised;
+    }
     
     /**
      * positions array getter
@@ -62,14 +79,21 @@ public class PdfWord {
 
     /**
      * add character to word
-     * @param location 
+     * @param location
+     * @return boolean
      */
-    public void addCharacter(PdfCharacter location) {
+    public boolean addCharacter(PdfCharacter location) {
         if (location.isSoftWordBreak()) {
-            String s = location.getNormalizedCharacter();
             this.setSoftBreak(true);
             this.position.setEnd(location);
-            return;
+            return true;
+        }
+        
+        String normalizedChar = location.getNormalizedCharacter();
+        
+        if (location.isPuctuationEnding()) {
+            this.setWord(this.getWord() + normalizedChar);
+            return false;
         }
         
         // if the last letter was a soft break then we need a new coord set
@@ -79,8 +103,11 @@ public class PdfWord {
             this.positions.add(this.position);
         }
         
-        this.setWord(this.getWord() + location.getNormalizedCharacter());
+        this.setWord(this.getWord() + normalizedChar);
+        this.setWordNormailised(this.getWordNormailised() + normalizedChar);
         this.position.setEnd(location);
+        
+        return true;
     }
 
     /**
@@ -89,6 +116,7 @@ public class PdfWord {
      */
     public PdfWord(PdfCharacter location) {
         this.word = location.getNormalizedCharacter();
+        this.wordNormailised = location.getNormalizedCharacter();
         this.position = new PdfWordPosition(location, location);
         this.positions.add(this.position);
     }
@@ -122,7 +150,10 @@ public class PdfWord {
         }
         
         // create root JSON
-        obj.put("word", getWord().replaceAll("[^\\x00-\\x7F]", ""));
+        JSONObject wordObj = new JSONObject();
+        wordObj.put("readable", getWord().replaceAll("[^\\x00-\\x7F]", ""));
+        wordObj.put("normalised", getWordNormailised().replaceAll("[^\\x00-\\x7F]", ""));
+        obj.put("word", wordObj);
         obj.put("layout", posArr);
         
         return obj;

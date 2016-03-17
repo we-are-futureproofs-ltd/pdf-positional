@@ -41,6 +41,7 @@ import org.json.simple.parser.ParseException;
  * @author jonny
  */
 public class PdfPositional extends PDFTextStripper {
+    
     /**
      * @param args the command line arguments
      */
@@ -63,7 +64,7 @@ public class PdfPositional extends PDFTextStripper {
             // check if file exists
             File input = new File(file);
             if(!input.exists()) {
-                throw new ParameterException("File does not exist: " + file);
+                throw new IOException("File does not exist: " + file);
             }
             
             // prepare character map
@@ -94,6 +95,17 @@ public class PdfPositional extends PDFTextStripper {
                 }
             }
 
+            // map soft breaks
+            jsonObject = (JSONObject)jsonObjectBase.get("puctuation");
+            MappingPunctuation mappingPunctuation = MappingPunctuation.getInstance();
+            for(Iterator replacements = jsonObject.keySet().iterator(); replacements.hasNext();) {
+                String replacement = (String) replacements.next();
+                Iterator<Long> matches = ((JSONArray)jsonObject.get(replacement)).iterator();
+                while (matches.hasNext()) {
+                    mappingPunctuation.addItem(matches.next(), replacement);
+                }
+            }
+
             // configure positional object
             PdfPositional pdfPositional = new PdfPositional(input);
             pdfPositional.setConversion(new Float(1.388888888889));
@@ -101,7 +113,6 @@ public class PdfPositional extends PDFTextStripper {
 
             // run positional object
             pdfPositional.run();
-            
             System.exit(0);
         } catch (ParameterException ex) {
             System.out.println("Parameter Error: " + ex.getMessage());
@@ -112,10 +123,7 @@ public class PdfPositional extends PDFTextStripper {
         } catch (IOException ex) {
             System.out.println("IO Error" + ex.getMessage());
             System.exit(1);
-        } catch (NumberFormatException ex) {
-            System.out.println("NumberFormat Error: " + ex.getMessage());
-            System.exit(1);
-        } catch (ParseException ex) {
+        }  catch (ParseException ex) {
             System.out.println("Parse Exception: " + ex.getMessage());
             System.exit(1);
         }
@@ -227,8 +235,12 @@ public class PdfPositional extends PDFTextStripper {
 
         // if char is not punctuation or whitespace
         if (!lastLocation.isWhiteSpace()) {
+            String c = text.getCharacter();
             if ((currentWord != null) && ((lineMatch == true) || currentWord.isSoftBreak())) {
-                currentWord.addCharacter(lastLocation);
+                // if character is punctuating ending  
+                if (currentWord.addCharacter(lastLocation) == false) {
+                    this.storeWord();
+                }
             } else if (currentWord == null) {
                 currentWord = new PdfWord(lastLocation);
             } else  {

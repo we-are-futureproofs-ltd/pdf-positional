@@ -21,6 +21,7 @@ public class MappingTest {
     String value = "value";
     Long[] keys = {1L, 2L, 3L};
     String[] values = {"val1", "val2", "val3"};
+    Long[] keys2 = {1L};
     
     public MappingTest() {
     }
@@ -65,6 +66,10 @@ public class MappingTest {
         assertEquals(values[0], instance.getValue(keys[0]));
         assertEquals(values[1], instance.getValue(keys[1]));
         assertEquals(values[2], instance.getValue(keys[2]));
+        
+        instance = new MappingImpl();
+        instance.addItems(keys2, values);
+        assertNotEquals(values[0], instance.getValue(keys2[0]));
     }
 
     /**
