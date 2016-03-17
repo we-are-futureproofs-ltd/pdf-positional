@@ -13,22 +13,22 @@ public class PdfWord {
     private PdfWordPosition position;
     
     private String word;
-    private String wordNormailised;
+    private String wordNormalised;
 
     /**
-     * wordNormailised getter
+     * wordNormalised getter
      * @return 
      */
-    public String getWordNormailised() {
-        return wordNormailised;
+    public String getWordNormalised() {
+        return wordNormalised;
     }
 
     /**
-     * wordNormailised setter
-     * @param wordNormailised 
+     * wordNormalised setter
+     * @param wordNormalised 
      */
-    public void setWordNormailised(String wordNormailised) {
-        this.wordNormailised = wordNormailised;
+    public void setWordNormalised(String wordNormalised) {
+        this.wordNormalised = wordNormalised;
     }
     
     /**
@@ -104,7 +104,7 @@ public class PdfWord {
         }
         
         this.setWord(this.getWord() + normalizedChar);
-        this.setWordNormailised(this.getWordNormailised() + normalizedChar);
+        this.setWordNormalised(this.getWordNormalised() + normalizedChar);
         this.position.setEnd(location);
         
         return true;
@@ -116,7 +116,7 @@ public class PdfWord {
      */
     public PdfWord(PdfCharacter location) {
         this.word = location.getNormalizedCharacter();
-        this.wordNormailised = location.getNormalizedCharacter();
+        this.wordNormalised = location.getNormalizedCharacter();
         this.position = new PdfWordPosition(location, location);
         this.positions.add(this.position);
     }
@@ -161,7 +161,7 @@ public class PdfWord {
         // create root JSON
         JSONObject wordObj = new JSONObject();
         wordObj.put("readable", prepWordForSave(getWord()));
-        wordObj.put("normalised", prepWordForSave(getWordNormailised()));
+        wordObj.put("normalised", prepWordForSave(getWordNormalised()));
         obj.put("word", wordObj);
         obj.put("layout", posArr);
         
