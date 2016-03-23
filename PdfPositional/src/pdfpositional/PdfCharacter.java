@@ -157,7 +157,7 @@ public class PdfCharacter {
      */
     public boolean isSoftWordBreak() {
         String chr = this.position.getCharacter();
-        return chr.matches("[" + MappingSoftBreak.getInstance().getRegex() + "]");
+        return chr.matches("[" + MappingSoftBreak.getInstance().getRegex() + "]+");
     }
     
     /**
@@ -166,7 +166,7 @@ public class PdfCharacter {
      */
     public boolean isPuctuationEnding() {
         String chr = this.position.getCharacter();
-        return chr.matches("[" + MappingPunctuation.getInstance().getRegex() + "]");
+        return chr.matches("[" + MappingPunctuation.getInstance().getRegex() + "]+");
     }
     
     /**
