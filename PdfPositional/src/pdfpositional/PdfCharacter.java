@@ -1,13 +1,13 @@
 package pdfpositional;
 
-import org.apache.pdfbox.util.TextPosition;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  *
  * @author jonny
  */
 public class PdfCharacter {
-    public static final char apostrophe = 39;
+    public static final char APOSTROPHE = 39;
     
     /**
      * Get the value of xPos
@@ -140,7 +140,7 @@ public class PdfCharacter {
      * @return boolean
      */
     public boolean isWhiteSpace() {
-        String chr = this.position.getCharacter();
+        String chr = this.position.toString();
         if (chr.matches("[^a-zA-Z0-9" + 
                 MappingSubstitution.getInstance().getRegex() + 
                 MappingSoftBreak.getInstance().getRegex() + 
@@ -156,7 +156,7 @@ public class PdfCharacter {
      * @return 
      */
     public boolean isSoftWordBreak() {
-        String chr = this.position.getCharacter();
+        String chr = this.position.toString();
         return chr.matches("[" + MappingSoftBreak.getInstance().getRegex() + "]+");
     }
     
@@ -165,16 +165,16 @@ public class PdfCharacter {
      * @return 
      */
     public boolean isPuctuationEnding() {
-        String chr = this.position.getCharacter();
+        String chr = this.position.toString();
         return chr.matches("[" + MappingPunctuation.getInstance().getRegex() + "]+");
     }
     
     /**
-     * check for apostrophe
+     * check for APOSTROPHE
      * @return 
      */
     public boolean isApostrophe() {
-        return (getNormalizedCharacter().equals(Character.toString((char)apostrophe)));
+        return (getNormalizedCharacter().equals(Character.toString((char)APOSTROPHE)));
     }
     
     /**
@@ -190,14 +190,14 @@ public class PdfCharacter {
      * @return String
      */
     public String getNormalizedCharacter() {
-        long charCode = (long)this.position.getCharacter().charAt(0);
+        long charCode = (long)this.position.toString().charAt(0);
         String mapping;
         
         if ((mapping = MappingSubstitution.getInstance().getValue(charCode)) != null) {
             return mapping;
         }
 
-        return this.position.getCharacter();
+        return this.position.toString();
     }
 
 

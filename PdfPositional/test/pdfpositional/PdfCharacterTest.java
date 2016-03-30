@@ -5,10 +5,13 @@
  */
 package pdfpositional;
 
+import java.io.IOException;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
-import org.apache.pdfbox.util.TextPosition;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -64,7 +67,7 @@ public class PdfCharacterTest {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         prepSingletons();
         tPos1 = createTextPosition("a", 10, 10, 8, 12);
         tPos2 = createTextPosition("b", 20, 10, 8, 12);
@@ -79,37 +82,55 @@ public class PdfCharacterTest {
     public void tearDown() {
     }
     
-    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) throws IOException {
         PDPage page = new PDPage();
-        Matrix textPositionSt = new Matrix();
-        Matrix textPositionEnd = new Matrix();
         float[] individualWidths = {};
         float spaceWidth = 4.0f;
         float fontSizeValue = 12f;
         int fontSizeInPt = 10;
         float ws = 4f;
+        int[] charCodes = {(int)character.charAt(0)};
+        Matrix textPositionSt = new Matrix(fontSizeValue, 0.0f, 0.0f, fontSizeValue, xDirAdj, yDirAdj + height);
+        Matrix textPositionEnd = new Matrix(fontSizeValue, 0.0f, 0.0f, fontSizeValue, xDirAdj + width, yDirAdj + height);
         
-        return new TextPosition(page, textPositionSt, textPositionEnd, 
-            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
-            fontSizeValue, fontSizeInPt, ws){
-            @Override
-            public float getXDirAdj() {
-                    return xDirAdj;
-            }
-            @Override
-            public float getYDirAdj() {
-                    return yDirAdj;
-            }
-            @Override
-            public float getWidthDirAdj() {
-                    return width;
-            }
-            @Override
-            public float getHeightDir() {
-                    return height;
-            }
-        };
+        org.apache.pdfbox.text.TextPosition tp; 
+        tp = new org.apache.pdfbox.text.TextPosition(fontSizeInPt, spaceWidth, height, textPositionSt, 
+                ws, ws, height, spaceWidth, spaceWidth, character, charCodes, PDType1Font.TIMES_ROMAN, fontSizeValue, fontSizeInPt);
+        
+        return tp;
     }
+    
+//    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+//        PDPage page = new PDPage();
+//        Matrix textPositionSt = new Matrix();
+//        Matrix textPositionEnd = new Matrix();
+//        float[] individualWidths = {};
+//        float spaceWidth = 4.0f;
+//        float fontSizeValue = 12f;
+//        int fontSizeInPt = 10;
+//        float ws = 4f;
+//        
+//        return new TextPosition(page, textPositionSt, textPositionEnd, 
+//            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
+//            fontSizeValue, fontSizeInPt, ws){
+//            @Override
+//            public float getXDirAdj() {
+//                    return xDirAdj;
+//            }
+//            @Override
+//            public float getYDirAdj() {
+//                    return yDirAdj;
+//            }
+//            @Override
+//            public float getWidthDirAdj() {
+//                    return width;
+//            }
+//            @Override
+//            public float getHeightDir() {
+//                    return height;
+//            }
+//        };
+//    }
     
 
     /**
@@ -128,9 +149,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetyPos() {
-        assertEquals(10.0F, instance.getyPos(), 0.0);
+        assertEquals(-10.0F, instance.getyPos(), 0.0);
         instance.setConversion(conversion2);
-        assertEquals(20.0F, instance.getyPos(), 0.0);
+        assertEquals(-20.0F, instance.getyPos(), 0.0);
     }
 
     /**
@@ -138,9 +159,9 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetWidth() {
-        assertEquals(8.0f, instance.getWidth(), 0.0);
+        assertEquals(6.0f, instance.getWidth(), 0.0);
         instance.setConversion(conversion2);
-        assertEquals(16.0f, instance.getWidth(), 0.0);
+        assertEquals(12.0f, instance.getWidth(), 0.0);
     }
 
     /**
@@ -230,13 +251,13 @@ public class PdfCharacterTest {
      */
     @Test
     public void testGetMaxNextWordXpos() {
-        assertEquals(22f, instance.getMaxNextWordXpos(), 0.0);
+        assertEquals(20f, instance.getMaxNextWordXpos(), 0.0);
         instance.setPosition(tPos2);
-        assertEquals(32f, instance.getMaxNextWordXpos(), 0.0);
+        assertEquals(40f, instance.getMaxNextWordXpos(), 0.0);
         instance.setPosition(tPos3);
-        assertEquals(52f, instance.getMaxNextWordXpos(), 0.0);
+        assertEquals(80f, instance.getMaxNextWordXpos(), 0.0);
         instance.setPosition(tPos4);
-        assertEquals(52f, instance.getMaxNextWordXpos(), 0.0);
+        assertEquals(80f, instance.getMaxNextWordXpos(), 0.0);
     }
 
     /**
@@ -256,7 +277,7 @@ public class PdfCharacterTest {
      * Test of isWhiteSpace method, of class PdfCharacter.
      */
     @Test
-    public void testIsWhiteSpace() {
+    public void testIsWhiteSpace() throws IOException {
         
         for (int i = 0; i < nonWhitespace.length; i++) {
             instance.setPosition(this.createTextPosition(nonWhitespace[i], 0, 0, 0, 0));
@@ -273,7 +294,7 @@ public class PdfCharacterTest {
      * Test of getNormalizedCharacter method, of class PdfCharacter.
      */
     @Test
-    public void testGetNormalizedCharacter() {
+    public void testGetNormalizedCharacter() throws IOException {
         Long[] keys = {64256L, 64257L, 64258L, 64259L, 64260L, 64261L, 8217L, 39L};
         String[] values = {"ff", "fi", "fl", "ffi", "ffl", "st", "'", "'"};
         MappingSubstitution.getInstance().addItems(keys, values);
@@ -290,7 +311,7 @@ public class PdfCharacterTest {
     }
     
     @Test
-    public void testIsApostrophe() {
+    public void testIsApostrophe() throws IOException {
         TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
         PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
         assertFalse(inst.isApostrophe());
@@ -301,7 +322,7 @@ public class PdfCharacterTest {
     }
     
     @Test
-    public void testIsPuctuationEnding() {
+    public void testIsPuctuationEnding() throws IOException {
         TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
         PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
         assertFalse(inst.isPuctuationEnding());
@@ -312,7 +333,7 @@ public class PdfCharacterTest {
     }
     
     @Test
-    public void testIsSoftWordBreak() {
+    public void testIsSoftWordBreak() throws IOException {
         TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
         PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
         assertFalse(inst.isSoftWordBreak());
@@ -323,7 +344,7 @@ public class PdfCharacterTest {
     }
     
     @Test
-    public void testIsWordStartCompatible() {
+    public void testIsWordStartCompatible() throws IOException {
         TextPosition textPosition = createTextPosition("a", 0, 0, 0, 0);
         PdfCharacter inst = new PdfCharacter(textPosition, conversion1);
         assertTrue(inst.isWordStartCompatible());

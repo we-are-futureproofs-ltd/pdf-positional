@@ -15,12 +15,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.util.List;
 
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.Iterator;
-import org.apache.pdfbox.exceptions.CryptographyException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import pdfpositional.exceptions.*;
 
@@ -28,11 +27,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDStream;
-import org.apache.pdfbox.util.PDFTextStripper;
-import org.apache.pdfbox.util.TextPosition;
-import org.apache.pdfbox.io.RandomAccessFile;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.TextPosition;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -138,65 +134,25 @@ public class PdfPositional extends PDFTextStripper {
      * @throws ParameterException 
      */
     protected void run () throws FileNotFoundException, IOException, EncryptedDocumentException, ParameterException {
+        super.setSortByPosition(true);
         PDDocument pdfDocument;
-        RandomAccessFile scratchFile = null;
-        if (this.getMode().equals("scratch")) {
-            File tmp = File.createTempFile("pdf", ".tmp");
-            tmp.deleteOnExit();
-            scratchFile = new RandomAccessFile(tmp, "rw");
-            pdfDocument = PDDocument.loadNonSeq(this.getInputFile(), scratchFile);
+        
+        pdfDocument = PDDocument.load(this.getInputFile());
+        StringWriter dummy = new StringWriter();
+        
+        if (this.hasPageNumber()) {
+            this.setStartPage(this.getPageNumber());
+            this.setEndPage(this.getPageNumber());
         } else {
-            pdfDocument = PDDocument.load(this.getInputFile());
+            this.setPageNumber(1);
         }
-
-        // check for encrypted document
-        if (pdfDocument.isEncrypted()) {
-            try {
-                pdfDocument.decrypt("");
-            } catch (CryptographyException | IOException e) {
-                pdfDocument.close();
-                throw new EncryptedDocumentException();
-            }
-        }
-
-        List allPages = pdfDocument.getDocumentCatalog().getAllPages();
-        if (this.hasPageNumber()) { 
-            if (pdfDocument.getNumberOfPages() < this.getPageNumber()) {
-                throw new ParameterException("illegal page number");
-            }
-            PDPage page = (PDPage) allPages.get(this.getPageNumber() - 1);
-            PDStream contents = page.getContents();
-            if (contents != null) {
-                this.processStream(page, page.findResources(), page.getContents().getStream());
-                this.addPageDataToPdfData();
-                this.writeJSONToOutputStream();
-            }
-        } else {
-            for (int i = 0; i < allPages.size(); i++) {
-                this.setPageNumber(i + 1);
-                PDPage page = (PDPage) allPages.get(i);
-                try {
-                    PDStream contents = page.getContents();
-
-                    if (contents != null) {
-                        this.processStream(page, page.findResources(), page.getContents().getStream());
-                        this.addPageDataToPdfData();
-                        this.writeJSONToOutputStream();
-                    }
-
-                } catch (Exception ex) {
-                    // do nothing
-                } finally {
-                    page.clear();
-                }
-            }
-        }
-
+        
+        this.writeText(pdfDocument, dummy);
+        this.addPageDataToPdfData();
+        this.writeJSONToOutputStream();
+        
         this.destroyOutputStream();
         pdfDocument.close();
-        if (scratchFile != null) {
-            scratchFile.close();
-        }
     }
     
     /**
@@ -230,6 +186,16 @@ public class PdfPositional extends PDFTextStripper {
     
     @Override
     protected void processTextPosition(TextPosition text) {
+        if (this.getCurrentPageNo() != this.getPageNumber()) {
+            try {
+                this.addPageDataToPdfData();
+                this.writeJSONToOutputStream();
+                this.setPageNumber(this.getCurrentPageNo());
+            } catch (IOException ex) {
+                Logger.getLogger(PdfPositional.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
         boolean lineMatch = (lastLocation == null) ? false : lastLocation.isSameWord(text);
 
         lastLocation = new PdfCharacter(text, this.getConversion());

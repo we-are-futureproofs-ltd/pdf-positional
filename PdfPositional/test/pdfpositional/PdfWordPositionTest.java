@@ -5,10 +5,11 @@
  */
 package pdfpositional;
 
+import java.io.IOException;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.util.Matrix;
-import org.apache.pdfbox.util.TextPosition;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public class PdfWordPositionTest {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         char1 = createPdfCharacter("a", 0, 100, 10, 10);
         char2 = createPdfCharacter("b", 10, 100, 10, 10);
     }
@@ -45,39 +46,27 @@ public class PdfWordPositionTest {
     public void tearDown() {
     }
     
-    public TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) {
+    
+    public org.apache.pdfbox.text.TextPosition createTextPosition(String character, float xDirAdj, float yDirAdj, float width, float height) throws IOException {
         PDPage page = new PDPage();
-        Matrix textPositionSt = new Matrix();
-        Matrix textPositionEnd = new Matrix();
         float[] individualWidths = {};
         float spaceWidth = 4.0f;
         float fontSizeValue = 12f;
         int fontSizeInPt = 10;
         float ws = 4f;
+        int[] charCodes = {(int)character.charAt(0)};
+        Matrix textPositionSt = new Matrix(fontSizeValue, 0.0f, 0.0f, fontSizeValue, xDirAdj, yDirAdj + height);
+        Matrix textPositionEnd = new Matrix(fontSizeValue, 0.0f, 0.0f, fontSizeValue, xDirAdj + width, yDirAdj + height);
         
-        return new TextPosition(page, textPositionSt, textPositionEnd, 
-            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
-            fontSizeValue, fontSizeInPt, ws){
-            @Override
-            public float getXDirAdj() {
-                    return xDirAdj;
-            }
-            @Override
-            public float getYDirAdj() {
-                    return yDirAdj;
-            }
-            @Override
-            public float getWidthDirAdj() {
-                    return width;
-            }
-            @Override
-            public float getHeightDir() {
-                    return height;
-            }
-        };
+        org.apache.pdfbox.text.TextPosition tp; 
+        tp = new org.apache.pdfbox.text.TextPosition(fontSizeInPt, spaceWidth, height, textPositionSt, 
+                ws, ws, height, spaceWidth, spaceWidth, character, charCodes, PDType1Font.TIMES_ROMAN, fontSizeValue, fontSizeInPt);
+        
+        return tp;
     }
+ 
     
-    public PdfCharacter createPdfCharacter(String character, float xDirAdj, float yDirAdj, float width, float height) {
+    public PdfCharacter createPdfCharacter(String character, float xDirAdj, float yDirAdj, float width, float height) throws IOException {
         return new PdfCharacter(createTextPosition(character, xDirAdj, yDirAdj, width, height), new Float(1));
     }
 
@@ -125,10 +114,10 @@ public class PdfWordPositionTest {
     @Test
     public void testGetWidth() {
         PdfWordPosition instance = new PdfWordPosition(char1, char1);
-        assertEquals(10.0F, instance.getWidth(), 0.0);
+        assertEquals(4.0F, instance.getWidth(), 0.0);
         
         instance = new PdfWordPosition(char1, char2);
-        assertEquals(20.0F, instance.getWidth(), 0.0);
+        assertEquals(16.0F, instance.getWidth(), 0.0);
     }
 
     /**
@@ -153,9 +142,9 @@ public class PdfWordPositionTest {
      * Test of getStartY method, of class PdfWordPosition.
      */
     @Test
-    public void testGetStartY() {
-        PdfWordPosition instance = new PdfWordPosition(char1, char1);
-        assertEquals(100.0F, instance.getStartY(), 0.0);
+    public void testGetStartY() throws IOException {
+        PdfWordPosition instance = new PdfWordPosition(createPdfCharacter("a", 0, 0, 10, 10), createPdfCharacter("a", 0, 0, 10, 10));
+        assertEquals(0.0F, instance.getStartY(), 0.0);
     }
     
 }

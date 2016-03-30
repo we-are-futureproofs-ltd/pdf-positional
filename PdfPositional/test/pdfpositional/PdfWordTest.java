@@ -8,11 +8,13 @@ package pdfpositional;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.text.TextPosition;
 
 import org.apache.pdfbox.util.Matrix;
-import org.apache.pdfbox.util.TextPosition;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,7 +45,7 @@ public class PdfWordTest {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         prepSingletons();
         char1 = this.createPdfCharacter("a");
         char2 = this.createPdfCharacter("b");
@@ -55,7 +57,7 @@ public class PdfWordTest {
     public void tearDown() {
     }
     
-    public PdfCharacter createPdfCharacter(String character) {
+    public PdfCharacter createPdfCharacter(String character) throws IOException {
         PDPage page = new PDPage();
         Matrix textPositionSt = new Matrix();
         Matrix textPositionEnd = new Matrix();
@@ -65,9 +67,24 @@ public class PdfWordTest {
         int fontSizeInPt = 10;
         float ws = 4f;
         
-        return new PdfCharacter(new TextPosition(page, textPositionSt, textPositionEnd, 
-            12f, individualWidths, spaceWidth, character, new PDType0Font(), 
-            fontSizeValue, fontSizeInPt, ws), new Float(1));
+        return new PdfCharacter(this.createTextPosition(character), new Float(1));
+    }
+    
+    public TextPosition createTextPosition(String character) throws IOException {
+        PDPage page = new PDPage();
+        Matrix textPositionSt = new Matrix();
+        Matrix textPositionEnd = new Matrix();
+        float[] individualWidths = {1.1f};
+        float spaceWidth = 4.0f;
+        float fontSizeValue = 12f;
+        float height = 1.1f;
+        int fontSizeInPt = 10;
+        float ws = 4f;
+        int[] charCodes = {(int)character.charAt(0)};
+        
+        
+        return new org.apache.pdfbox.text.TextPosition(fontSizeInPt, spaceWidth, height, textPositionSt, 
+                ws, ws, height, spaceWidth, spaceWidth, character, charCodes, PDType1Font.TIMES_ROMAN, fontSizeValue, fontSizeInPt);
     }
     
     public void prepSingletons() {
@@ -133,7 +150,7 @@ public class PdfWordTest {
      * Test of addCharacter method, of class PdfWord.
      */
     @Test
-    public void testAddCharacter() {
+    public void testAddCharacter() throws IOException {
         instance.addCharacter(char2);
         ArrayList<PdfWordPosition> posTmp = instance.getPositions();
         
@@ -186,7 +203,7 @@ public class PdfWordTest {
     @Test
     public void testToJson() {
         assertTrue(instance.toJson() instanceof JSONObject);
-        String expectedJson = "{\"layout\":[{\"width\":0.0,\"x\":0.0,\"y\":792.0,\"height\":12.0}],\"word\":{\"readable\":\"a\",\"normalised\":\"a\"}}";
+        String expectedJson = "{\"layout\":[{\"width\":4.0,\"x\":0.0,\"y\":1.1,\"height\":1.1}],\"word\":{\"readable\":\"a\",\"normalised\":\"a\"}}";
         StringWriter out = new StringWriter();
         try {
             instance.toJson().writeJSONString(out);
