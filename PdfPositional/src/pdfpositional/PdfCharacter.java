@@ -141,13 +141,24 @@ public class PdfCharacter {
      */
     public boolean isWhiteSpace() {
         String chr = this.position.toString();
-        if (chr.matches("[^a-zA-Z0-9" + 
+        // match substitutions, soft-breaks and punctuation
+        // note: used to negatively match the below as an exclusive "whitespace" check
+        if (chr.matches("[a-zA-Z0-9" + 
                 MappingSubstitution.getInstance().getRegex() + 
                 MappingSoftBreak.getInstance().getRegex() + 
                 MappingPunctuation.getInstance().getRegex() + "]")) {
+            return false;
+        }
+
+        // match \s with line breakers taken out
+        if (chr.matches("[\\t\\v \\u00a0\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u200b\\u3000]")) {
             return true;
         }
         
+        // match hard punctuation
+        if (chr.matches("\\p{Punct}")) {
+            return true;
+        }
         return (Character.isWhitespace(chr.charAt(0)));
     }
     

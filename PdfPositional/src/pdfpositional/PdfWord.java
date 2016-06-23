@@ -136,7 +136,8 @@ public class PdfWord {
      * @return String
      */
     public String prepWordForSave(String word) {
-        return word.replaceAll("^[']|[^\\x00-\\x7F]|[']$", "");
+        //return word.replaceAll("^[']|[^\\x00-\\x7F]|[']$", "");
+        return word.replaceAll("^[']|[']$", "");
     }
     
     /**
