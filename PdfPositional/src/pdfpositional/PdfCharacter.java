@@ -151,12 +151,13 @@ public class PdfCharacter {
         }
 
         // match \s with line breakers taken out
-        if (chr.matches("[\\t\\v \\u00a0\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u200b\\u3000]")) {
+        if (chr.matches("[\\t\\v \\u2026\\u00a0\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u200b\\u3000]")) {
             return true;
         }
         
-        // match hard punctuation
-        if (chr.matches("\\p{Punct}")) {
+        // match hard punctuation 
+        // note: could also use: [!\"#$%&'()*+,-./:;<=>?@\[\]^_{|}~`\\ \p{Punct}] 
+        if (chr.matches("[\\p{Punct}]")) {
             return true;
         }
         return (Character.isWhitespace(chr.charAt(0)));
