@@ -15,7 +15,7 @@ To compile from Netbeans:
 - To complete the deployment process this file should be copied to the /data/libs/pdf-positional of the extraction repository
 
 Or you can use the ant script from the command line:
-ant -f [location]/PdfPositional -Dnb.internal.action.name=rebuild clean jar
+- ant -f [location]/PdfPositional -Dnb.internal.action.name=rebuild clean jar
 
 
 ### Testing
@@ -33,8 +33,7 @@ From command line (without code coverage)
 - ant -f [location]/PdfPositional -Dnb.internal.action.name=test -Dincludes=pdfpositional/**/*Test.java -Dignore.failing.tests=true test
 
 From command line (with code coverage)
-ant -f [location]/PdfPositional "-Drun.jvmargs=  -javaagent:\"[jacocoagentLocation]jacocoagent.jar\"=includes=pdfpositional.*:pdfpositional.exceptions.*,destfile=\"[location]/PdfPositional/jacoco.exec-312441300272722\"" test
-
+- ant -f [location]/PdfPositional "-Drun.jvmargs=  -javaagent:\"[jacocoagentLocation]jacocoagent.jar\"=includes=pdfpositional.*:pdfpositional.exceptions.*,destfile=\"[location]/PdfPositional/jacoco.exec-312441300272722\"" test
 
 
 ### Running Compliled 
@@ -47,5 +46,19 @@ where options include:
 | ----------- |:--------------:|
 | --page      | numerical page |
 | --mode      | scratch        |
+
+
+### Notes on process flow
+- Parameters are checked
+- Input file validated
+- Output stream created (file/stdout)
+- PDFBox document initialized
+- PDFBox writeText method started (to kick off document processing)
+- Overridden processTextPosition is called as each character is read
+- Character is checked for type and either added to current word or pushed to a new word
+- Last word is passed to current page data collection
+- When current page is completed then page data is streamed to output as JSON
+- On final page completion page data is written and streams closed
+
   
 
