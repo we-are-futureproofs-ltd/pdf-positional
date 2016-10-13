@@ -193,7 +193,6 @@ public class PdfWordTest {
         assertEquals(instance.prepWordForSave("09"), "09");
         assertEquals(instance.prepWordForSave("a'b"), "a'b");
         assertEquals(instance.prepWordForSave("a'"), "a");
-        assertEquals(instance.prepWordForSave(Character.toString((char)128)), "");
         assertNotEquals(instance.prepWordForSave(Character.toString((char)127)), "");
     }
 
